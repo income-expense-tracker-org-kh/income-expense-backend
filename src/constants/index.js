@@ -49,14 +49,9 @@ export const CURRENCIES = [
 
 // Languages
 export const LANGUAGES = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-  { code: 'de', name: 'German' },
-  { code: 'hi', name: 'Hindi' },
-  { code: 'zh', name: 'Chinese' },
-  { code: 'ja', name: 'Japanese' },
-  { code: 'pt', name: 'Portuguese' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'km', name: 'ខ្មែរ (Khmer)', flag: '🇰🇭' },
+  { code: 'zh', name: '中文 (Chinese)', flag: '🇨🇳' },
 ];
 
 // Date Formats
@@ -95,6 +90,35 @@ export const EXPORT_TYPES = [
   { value: 'pdf', label: 'PDF', icon: '📄' },
   { value: 'excel', label: 'Excel', icon: '📊' },
   { value: 'csv', label: 'CSV', icon: '📋' },
+];
+
+// User Roles
+export const USER_ROLES = [
+  { value: 'admin', label: 'Admin', permissions: ['all'] },
+  { value: 'manager', label: 'Manager', permissions: ['read', 'write', 'update'] },
+  { value: 'user', label: 'User', permissions: ['read', 'write'] },
+  { value: 'viewer', label: 'Viewer', permissions: ['read'] },
+];
+
+// Permission Definitions
+export const PERMISSIONS = {
+  READ: 'read',
+  WRITE: 'write',
+  UPDATE: 'update',
+  DELETE: 'delete',
+  ALL: 'all',
+};
+
+// Menu Items with Role Permissions
+export const MENU_ITEMS = [
+  { path: '/dashboard', label: 'Dashboard', permissions: ['read'] },
+  { path: '/income', label: 'Income', permissions: ['read', 'write'] },
+  { path: '/expense', label: 'Expense', permissions: ['read', 'write'] },
+  { path: '/budget', label: 'Budget', permissions: ['read', 'write'] },
+  { path: '/reports', label: 'Reports', permissions: ['read'] },
+  { path: '/transactions', label: 'Transactions', permissions: ['read'] },
+  { path: '/profile', label: 'Profile', permissions: ['read'] },
+  { path: '/settings', label: 'Settings', permissions: ['all'] },
 ];
 
 // API Endpoints (Update with your backend URL)
