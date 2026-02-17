@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../constants';
 
-// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -9,7 +8,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// Request interceptor: attach token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,17 +17,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// Response interceptor: handle 401
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => response.data, // response already contains data
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

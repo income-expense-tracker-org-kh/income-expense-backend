@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Search, Filter, X, Calendar, DollarSign, FileText } from 'lucide-react';
-import { useTransactionStore } from '../../store/transactionStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { formatCurrency, formatDate } from '../../utils/helpers';
 import { INCOME_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
+import { incomeService } from '../../services/incomeService';
 
 const Income = () => {
-  const { incomes, addTransaction, updateTransaction, deleteTransaction } = useTransactionStore();
   const { currency, dateFormat } = useSettingsStore();
 
   const [showModal, setShowModal] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [incomes, setIncomes] = useState([]);
   const [formData, setFormData] = useState({
     amount: '',
     category: '',
@@ -40,15 +40,33 @@ const Income = () => {
     setShowModal(true);
   };
 
+  const fetchIncomes = async () => {
+    try {
+      const res = await incomeService.getAll();
+      setIncomes(res?.data);
+    } catch (error) {
+      toast.error('Failed to load incomes');
+    }
+  };
+
+  useEffect(() => {
+    fetchIncomes();
+  }, []);
+
+
   const handleEdit = (income) => {
     setEditingIncome(income);
     setFormData({
       amount: income.amount,
+      source: income.category,
       category: income.category,
       description: income.description || '',
       date: income.date.split('T')[0],
       isRecurring: income.isRecurring || false,
       recurringPeriod: income.recurringPeriod || 'monthly',
+      recurringPattern: formData.isRecurring
+        ? { frequency: formData.recurringPeriod, startDate: formData.date }
+        : null,
     });
     setShowModal(true);
   };
@@ -61,7 +79,7 @@ const Income = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.amount || !formData.category || !formData.date) {
@@ -70,35 +88,50 @@ const Income = () => {
     }
 
     const incomeData = {
-      type: 'income',
       amount: parseFloat(formData.amount),
+      source: formData.category,
       category: formData.category,
       description: formData.description,
       date: formData.date,
       isRecurring: formData.isRecurring,
       recurringPeriod: formData.recurringPeriod,
+      recurringPattern: formData.isRecurring
+        ? { frequency: formData.recurringPeriod, startDate: formData.date }
+        : null,
     };
 
-    if (editingIncome) {
-      updateTransaction(editingIncome.id, incomeData);
-      toast.success('Income updated successfully');
-    } else {
-      addTransaction(incomeData);
-      toast.success('Income added successfully');
-    }
+    try {
+      if (editingIncome) {
+        await incomeService.update(editingIncome._id, incomeData);
+        toast.success('Income updated successfully');
+      } else {
+        await incomeService.create(incomeData);
+        toast.success('Income added successfully');
+      }
 
-    setShowModal(false);
-    resetForm();
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this income?')) {
-      deleteTransaction(id);
-      toast.success('Income deleted successfully');
+      fetchIncomes(); // reload list
+      setShowModal(false);
+      resetForm();
+    } catch (error) {
+      toast.error('Save failed');
     }
   };
 
-  const filteredIncomes = incomes.filter((income) => {
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure?')) return;
+
+    try {
+      await incomeService.delete(id);
+      toast.success('Deleted successfully');
+      fetchIncomes();
+    } catch {
+      toast.error('Delete failed');
+    }
+  };
+
+
+  const filteredIncomes = incomes && incomes?.filter((income) => {
     const matchesSearch = 
       income.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       income.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -236,7 +269,8 @@ const Income = () => {
                           <Edit2 size={18} />
                         </button>
                         <button
-                          onClick={() => handleDelete(income.id)}
+                          key={income._id}
+                          onClick={() => handleDelete(income._id)}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Delete"
                         >
