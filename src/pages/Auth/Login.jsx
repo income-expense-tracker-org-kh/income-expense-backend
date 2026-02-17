@@ -27,8 +27,6 @@ const Login = () => {
         password: formData.password,
       });
 
-      console.log('Login response:', response);
-
       const { user, accessToken } = response;
 
       if (!accessToken) throw new Error('Invalid token received');

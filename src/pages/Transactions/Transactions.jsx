@@ -1,48 +1,116 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Calendar, Download, TrendingUp, TrendingDown, SlidersHorizontal } from 'lucide-react';
-import { useTransactionStore } from '../../store/transactionStore';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Search, Filter, Calendar, TrendingUp, TrendingDown, SlidersHorizontal } from 'lucide-react';
 import { useSettingsStore } from '../../store/settingsStore';
 import { formatCurrency, formatDate } from '../../utils/helpers';
+import { expenseService } from '../../services/expenseService';
+import { incomeService } from '../../services/incomeService';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants';
+import toast from 'react-hot-toast';
 
+// ─── Skeleton components ──────────────────────────────────────────────────────
+const Skeleton = ({ className = '' }) => (
+  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
+);
+
+const CardSkeleton = () => (
+  <div className="card">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-8 w-24" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-full" />
+    </div>
+  </div>
+);
+
+const RowSkeleton = () => (
+  <tr className="border-b border-gray-100 dark:border-gray-800">
+    {[...Array(5)].map((_, i) => (
+      <td key={i} className="py-3 px-4">
+        <Skeleton className="h-5 w-full" />
+      </td>
+    ))}
+  </tr>
+);
+
+// ─── Main component ───────────────────────────────────────────────────────────
 const Transactions = () => {
-  const { transactions } = useTransactionStore();
   const { currency, dateFormat } = useSettingsStore();
 
+  // ── Filter state ───────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
-  const [dateRange, setDateRange] = useState({
-    startDate: '',
-    endDate: '',
-  });
+  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Filter and sort transactions
+  // ── Loading & data state ───────────────────────────────────────────────────
+  const [loadingExpenses, setLoadingExpenses] = useState(false);
+  const [loadingIncome, setLoadingIncome] = useState(false);
+  const [allExpenses, setAllExpenses] = useState([]);
+  const [allIncome, setAllIncome] = useState([]);
+
+  // ── Fetch functions ────────────────────────────────────────────────────────
+
+  const fetchAllExpenses = useCallback(async () => {
+    try {
+      setLoadingExpenses(true);
+      const res = await expenseService.getAll();
+      setAllExpenses(res?.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load expenses');
+    } finally {
+      setLoadingExpenses(false);
+    }
+  }, []);
+
+  const fetchAllIncome = useCallback(async () => {
+    try {
+      setLoadingIncome(true);
+      const res = await incomeService.getAll();
+      setAllIncome(res?.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load incomes');
+    } finally {
+      setLoadingIncome(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAllExpenses();
+    fetchAllIncome();
+  }, [fetchAllExpenses, fetchAllIncome]);
+
+  // ── Merge both lists into unified transactions array ───────────────────────
+  const transactions = useMemo(() => [
+    ...allIncome.map(t => ({ ...t, type: 'income' })),
+    ...allExpenses.map(t => ({ ...t, type: 'expense' })),
+  ], [allIncome, allExpenses]);
+
+  const isLoading = loadingExpenses || loadingIncome;
+
+  // ── Filter + sort ──────────────────────────────────────────────────────────
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
 
-    // Search filter
     if (searchTerm) {
       filtered = filtered.filter(t =>
         t.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchTerm.toLowerCase())
+        t.category?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Type filter
     if (filterType !== 'all') {
       filtered = filtered.filter(t => t.type === filterType);
     }
 
-    // Category filter
     if (filterCategory !== 'all') {
       filtered = filtered.filter(t => t.category === filterCategory);
     }
 
-    // Date range filter
     if (dateRange.startDate) {
       filtered = filtered.filter(t => new Date(t.date) >= new Date(dateRange.startDate));
     }
@@ -50,46 +118,30 @@ const Transactions = () => {
       filtered = filtered.filter(t => new Date(t.date) <= new Date(dateRange.endDate));
     }
 
-    // Sort
     switch (sortBy) {
-      case 'date-desc':
-        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-        break;
-      case 'date-asc':
-        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-        break;
-      case 'amount-desc':
-        filtered.sort((a, b) => b.amount - a.amount);
-        break;
-      case 'amount-asc':
-        filtered.sort((a, b) => a.amount - b.amount);
-        break;
-      case 'category':
-        filtered.sort((a, b) => a.category.localeCompare(b.category));
-        break;
-      default:
-        break;
+      case 'date-desc':   filtered.sort((a, b) => new Date(b.date) - new Date(a.date)); break;
+      case 'date-asc':    filtered.sort((a, b) => new Date(a.date) - new Date(b.date)); break;
+      case 'amount-desc': filtered.sort((a, b) => b.amount - a.amount); break;
+      case 'amount-asc':  filtered.sort((a, b) => a.amount - b.amount); break;
+      case 'category':    filtered.sort((a, b) => a.category.localeCompare(b.category)); break;
+      default: break;
     }
 
     return filtered;
   }, [transactions, searchTerm, filterType, filterCategory, sortBy, dateRange]);
 
-  // Pagination
+  // ── Pagination ─────────────────────────────────────────────────────────────
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // Calculate totals
-  const totalIncome = filteredTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalExpense = filteredTransactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  // ── Summary totals ─────────────────────────────────────────────────────────
+  const totalIncome  = filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
   const getCategoryIcon = (type, categoryId) => {
     const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     const category = categories.find(cat => cat.id === categoryId);
@@ -105,6 +157,7 @@ const Transactions = () => {
     setCurrentPage(1);
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,62 +170,66 @@ const Transactions = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{filteredTransactions.length}</h3>
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)
+        ) : (
+          <>
+            <div className="card">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
+                  <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{filteredTransactions.length}</h3>
+                </div>
+                <SlidersHorizontal className="text-gray-400" size={32} />
+              </div>
             </div>
-            <SlidersHorizontal className="text-gray-400" size={32} />
-          </div>
-        </div>
 
-        <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
-              <h3 className="text-2xl font-bold text-green-900 dark:text-white">
-                {formatCurrency(totalIncome, currency)}
-              </h3>
+            <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+                  <h3 className="text-2xl font-bold text-green-900 dark:text-white">
+                    {formatCurrency(totalIncome, currency)}
+                  </h3>
+                </div>
+                <TrendingUp className="text-income" size={32} />
+              </div>
             </div>
-            <TrendingUp className="text-income" size={32} />
-          </div>
-        </div>
 
-        <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
-              <h3 className="text-2xl font-bold text-red-900 dark:text-white">
-                {formatCurrency(totalExpense, currency)}
-              </h3>
+            <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
+                  <h3 className="text-2xl font-bold text-red-900 dark:text-white">
+                    {formatCurrency(totalExpense, currency)}
+                  </h3>
+                </div>
+                <TrendingDown className="text-expense" size={32} />
+              </div>
             </div>
-            <TrendingDown className="text-expense" size={32} />
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Filters */}
       <div className="card">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search transactions..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="input-field pl-10"
             />
           </div>
 
-          {/* Type Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+              onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
               className="input-field pl-10"
             >
               <option value="all">All Types</option>
@@ -181,11 +238,10 @@ const Transactions = () => {
             </select>
           </div>
 
-          {/* Category Filter */}
           <div>
             <select
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
+              onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
               className="input-field"
             >
               <option value="all">All Categories</option>
@@ -202,7 +258,6 @@ const Transactions = () => {
             </select>
           </div>
 
-          {/* Sort By */}
           <div>
             <select
               value={sortBy}
@@ -217,11 +272,7 @@ const Transactions = () => {
             </select>
           </div>
 
-          {/* Clear Filters */}
-          <button
-            onClick={clearFilters}
-            className="btn-secondary"
-          >
+          <button onClick={clearFilters} className="btn-secondary">
             Clear Filters
           </button>
         </div>
@@ -235,12 +286,11 @@ const Transactions = () => {
               <input
                 type="date"
                 value={dateRange.startDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={(e) => { setDateRange(prev => ({ ...prev, startDate: e.target.value })); setCurrentPage(1); }}
                 className="input-field pl-10"
               />
             </div>
           </div>
-
           <div>
             <label className="label">End Date</label>
             <div className="relative">
@@ -248,7 +298,7 @@ const Transactions = () => {
               <input
                 type="date"
                 value={dateRange.endDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={(e) => { setDateRange(prev => ({ ...prev, endDate: e.target.value })); setCurrentPage(1); }}
                 className="input-field pl-10"
               />
             </div>
@@ -259,7 +309,20 @@ const Transactions = () => {
       {/* Transactions Table */}
       <div className="card">
         <div className="overflow-x-auto">
-          {paginatedTransactions.length === 0 ? (
+          {isLoading ? (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  {['Date', 'Type', 'Category', 'Description', 'Amount'].map(h => (
+                    <th key={h} className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => <RowSkeleton key={i} />)}
+              </tbody>
+            </table>
+          ) : paginatedTransactions.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">No transactions found</p>
             </div>
@@ -277,7 +340,7 @@ const Transactions = () => {
               <tbody>
                 {paginatedTransactions.map((transaction) => (
                   <tr
-                    key={transaction.id}
+                    key={transaction._id ?? transaction.id}
                     className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
@@ -292,11 +355,7 @@ const Transactions = () => {
                           ? 'bg-income-light dark:bg-income-dark/20 text-income-dark dark:text-income-light'
                           : 'bg-expense-light dark:bg-expense-dark/20 text-expense-dark dark:text-expense-light'
                       }`}>
-                        {transaction.type === 'income' ? (
-                          <TrendingUp size={16} />
-                        ) : (
-                          <TrendingDown size={16} />
-                        )}
+                        {transaction.type === 'income' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                         {transaction.type}
                       </span>
                     </td>
@@ -333,7 +392,7 @@ const Transactions = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {!isLoading && totalPages > 1 && (
           <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400">
               Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} of {filteredTransactions.length} transactions
@@ -349,16 +408,10 @@ const Transactions = () => {
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
+                  if (totalPages <= 5)             pageNum = i + 1;
+                  else if (currentPage <= 3)       pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                  else                             pageNum = currentPage - 2 + i;
                   return (
                     <button
                       key={i}

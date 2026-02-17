@@ -4,7 +4,6 @@ import { useSettingsStore } from '../../store/settingsStore';
 import { useTransactionStore } from '../../store/transactionStore';
 import { useBudgetStore } from '../../store/budgetStore';
 import { CURRENCIES, LANGUAGES, DATE_FORMATS } from '../../constants';
-import { exportService } from '../../services/exportService';
 import toast from 'react-hot-toast';
 
 const Settings = () => {
