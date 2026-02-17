@@ -6,18 +6,13 @@ export const dashboardService = {
     return await api.get('/dashboard');
   },
 
-  // Create expenses
-  create: async (data) => {
-    return await api.post('/expenses', data);
+  // Get all insights
+  getInsights: async () => {
+    return await api.get('/dashboard/insights');
   },
 
-  // Update expenses
-  update: async (id, data) => {
-    return await api.put(`/expenses/${id}`, data);
-  },
-
-  // Delete expenses
-  delete: async (id) => {
-    return await api.delete(`/expenses/${id}`);
+  // Get all summary
+  getFinancialSummary: async () => {
+    return await api.get('/dashboard/summary');
   },
 };

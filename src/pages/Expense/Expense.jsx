@@ -200,7 +200,6 @@ const Expense = () => {
       const res = await expenseService.getAll();
       setExpenses(res?.data);
     } catch (error) {
-      console.log('error', error);
       toast.error('Failed to load expenses');
     } finally {
       setLoading(false);

@@ -20,4 +20,12 @@ export const expenseService = {
   delete: async (id) => {
     return await api.delete(`/expenses/${id}`);
   },
+
+  getExpenseSummary: async () => {
+    return await api.get('/expenses/summary');
+  },
+
+  getExpenseTrends: async () => {
+    return await api.get('expenses/trends');
+  }
 };

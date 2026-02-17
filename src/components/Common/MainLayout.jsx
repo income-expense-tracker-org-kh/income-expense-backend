@@ -23,7 +23,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { LANGUAGES, MENU_ITEMS } from '../../constants';
+import { LANGUAGES } from '../../constants';
 import toast from 'react-hot-toast';
 
 const MainLayout = () => {

@@ -1,15 +1,45 @@
-import React, { useState, useMemo } from 'react';
-import { Download, Calendar, Filter, TrendingUp, TrendingDown, PieChart as PieChartIcon } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Calendar, Filter, TrendingUp, TrendingDown, PieChart as PieChartIcon, RefreshCw } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTransactionStore } from '../../store/transactionStore';
 import { useSettingsStore } from '../../store/settingsStore';
-import { formatCurrency, groupByCategory, groupByDate } from '../../utils/helpers';
+import { formatCurrency } from '../../utils/helpers';
 import { exportService } from '../../services/exportService';
+import { expenseService } from '../../services/expenseService';
+import { incomeService } from '../../services/incomeService';
+import { dashboardService } from '../../services/dashboardService';
 import { CHART_COLORS, EXPORT_TYPES } from '../../constants';
 import toast from 'react-hot-toast';
 
+// ─── Skeleton loader components ───────────────────────────────────────────────
+const Skeleton = ({ className = '' }) => (
+  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
+);
+
+const CardSkeleton = () => (
+  <div className="card">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-8 w-32" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-full" />
+    </div>
+  </div>
+);
+
+const ChartSkeleton = () => (
+  <div className="card">
+    <Skeleton className="h-6 w-40 mb-4" />
+    <div className="flex items-end gap-2 h-[300px] pt-8">
+      {[60, 80, 45, 90, 55, 70, 40, 85, 65, 75].map((h, i) => (
+        <Skeleton key={i} className="flex-1" style={{ height: `${h}%` }} />
+      ))}
+    </div>
+  </div>
+);
+
+// ─── Main component ────────────────────────────────────────────────────────────
 const Reports = () => {
-  const { transactions, incomes, expenses, getTotalIncome, getTotalExpense } = useTransactionStore();
   const { currency } = useSettingsStore();
 
   const [dateRange, setDateRange] = useState({
@@ -18,101 +48,251 @@ const Reports = () => {
   });
   const [reportType, setReportType] = useState('overview');
 
-  // Filter transactions by date range
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter((t) => {
-      const tDate = new Date(t.date);
-      const start = new Date(dateRange.startDate);
-      const end = new Date(dateRange.endDate);
-      return tDate >= start && tDate <= end;
-    });
-  }, [transactions, dateRange]);
+  // ── Loading state (one boolean per fetch, matching codebase pattern) ────────
+  const [loadingFinancialSummary, setLoadingFinancialSummary] = useState(false);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [loadingExpenseSummary, setLoadingExpenseSummary] = useState(false);
+  const [loadingExpenseTrends, setLoadingExpenseTrends] = useState(false);
+  const [loadingAllExpenses, setLoadingAllExpenses] = useState(false);
+  const [loadingAllIncome, setLoadingAllIncome] = useState(false);
 
-  const filteredIncomes = filteredTransactions.filter(t => t.type === 'income');
-  const filteredExpenses = filteredTransactions.filter(t => t.type === 'expense');
+  // ── Data state ─────────────────────────────────────────────────────────────
+  const [financialSummary, setFinancialSummary] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [expenseSummary, setExpenseSummary] = useState(null);
+  const [expenseTrends, setExpenseTrends] = useState([]);
+  const [allExpenses, setAllExpenses] = useState([]);
+  const [allIncome, setAllIncome] = useState([]);
 
-  // Calculate totals
-  const totalIncome = filteredIncomes.reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = filteredExpenses.reduce((sum, t) => sum + t.amount, 0);
-  const balance = totalIncome - totalExpense;
-  const savingsRate = totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : 0;
+  // ── Fetch functions (all follow the same pattern) ─────────────────────────
 
-  // Group data by category
+  const fetchFinancialSummary = async () => {
+    try {
+      setLoadingFinancialSummary(true);
+      const res = await dashboardService.getFinancialSummary(dateRange);
+      setFinancialSummary(res?.data);
+    } catch (error) {
+      toast.error('Failed to load financial summary');
+    } finally {
+      setLoadingFinancialSummary(false);
+    }
+  };
+
+  const fetchInsights = async () => {
+    try {
+      setLoadingInsights(true);
+      const res = await dashboardService.getInsights(dateRange);
+      setInsights(res?.data);
+    } catch (error) {
+      toast.error('Failed to load insights');
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  const fetchExpenseSummary = async () => {
+    try {
+      setLoadingExpenseSummary(true);
+      const res = await expenseService.getExpenseSummary(dateRange);
+      setExpenseSummary(res?.data);
+    } catch (error) {
+      toast.error('Failed to load expense summary');
+    } finally {
+      setLoadingExpenseSummary(false);
+    }
+  };
+
+  const fetchExpenseTrends = async () => {
+    try {
+      setLoadingExpenseTrends(true);
+      const res = await expenseService.getExpenseTrends(dateRange);
+      setExpenseTrends(res?.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load expense trends');
+    } finally {
+      setLoadingExpenseTrends(false);
+    }
+  };
+
+  const fetchAllExpenses = async () => {
+    try {
+      setLoadingAllExpenses(true);
+      const res = await expenseService.getAll(dateRange);
+      setAllExpenses(res?.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load expenses');
+    } finally {
+      setLoadingAllExpenses(false);
+    }
+  };
+
+  const fetchAllIncome = async () => {
+    try {
+      setLoadingAllIncome(true);
+      const res = await incomeService.getAll(dateRange);
+      setAllIncome(res?.data ?? []);
+    } catch (error) {
+      toast.error('Failed to load incomes');
+    } finally {
+      setLoadingAllIncome(false);
+    }
+  };
+
+  // ── Effects ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    fetchFinancialSummary();
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchInsights();
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchExpenseSummary();
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchExpenseTrends();
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchAllExpenses();
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchAllIncome();
+  }, [dateRange]);
+
+  // ── Refresh all ───────────────────────────────────────────────────────────
+  const handleRefresh = () => {
+    fetchFinancialSummary();
+    fetchInsights();
+    fetchExpenseSummary();
+    fetchExpenseTrends();
+    fetchAllExpenses();
+    fetchAllIncome();
+    toast.success('Data refreshed');
+  };
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+  const isAnythingLoading =
+    loadingFinancialSummary ||
+    loadingInsights ||
+    loadingExpenseSummary ||
+    loadingExpenseTrends ||
+    loadingAllExpenses ||
+    loadingAllIncome;
+
+  const allTransactions = useMemo(() => [
+    ...allIncome.map(t => ({ ...t, type: 'income' })),
+    ...allExpenses.map(t => ({ ...t, type: 'expense' })),
+  ], [allIncome, allExpenses]);
+
+  // expenseSummary.total/count come directly from API: { total: 306, count: 2, byCategory: [...] }
+  const totalIncome  = financialSummary?.totalIncome  ?? allIncome.reduce((s, t) => s + (t.amount ?? 0), 0);
+  const totalExpense = financialSummary?.totalExpense ?? expenseSummary?.total ?? allExpenses.reduce((s, t) => s + (t.amount ?? 0), 0);
+  const totalCount   = expenseSummary?.count ?? allExpenses.length;
+  const balance      = financialSummary?.balance      ?? (totalIncome - totalExpense);
+  const savingsRate  = financialSummary?.savingsRate  ?? (totalIncome > 0 ? ((balance / totalIncome) * 100).toFixed(1) : 0);
+
   const expenseByCategory = useMemo(() => {
-    const grouped = groupByCategory(filteredExpenses);
-    return Object.values(grouped).map(cat => ({
-      name: cat.category,
-      value: cat.total,
-    }));
-  }, [filteredExpenses]);
-
-  const incomeByCategory = useMemo(() => {
-    const grouped = groupByCategory(filteredIncomes);
-    return Object.values(grouped).map(cat => ({
-      name: cat.category,
-      value: cat.total,
-    }));
-  }, [filteredIncomes]);
-
-  // Monthly trend data
-  const monthlyTrend = useMemo(() => {
-    const grouped = groupByDate(filteredTransactions);
-    const dates = Object.keys(grouped).sort();
-    
-    return dates.map(date => {
-      const dayData = grouped[date];
-      const income = dayData.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-      const expense = dayData.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-      
-      return {
-        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        income,
-        expense,
-        balance: income - expense,
-      };
+    // API returns byCategory as an array: [{ _id: "rent", total: 300, count: 1, avgAmount: 300 }, ...]
+    if (Array.isArray(expenseSummary?.byCategory) && expenseSummary.byCategory.length > 0) {
+      return expenseSummary.byCategory.map(cat => ({
+        name: cat._id,
+        value: cat.total,
+        count: cat.count,
+        avg: cat.avgAmount,
+      }));
+    }
+    // Fallback: compute locally from raw expenses
+    const grouped = {};
+    allExpenses.forEach(t => {
+      grouped[t.category] = (grouped[t.category] || 0) + (t.amount ?? 0);
     });
-  }, [filteredTransactions]);
+    return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+  }, [expenseSummary, allExpenses]);
 
-  // Top expenses
-  const topExpenses = useMemo(() => {
-    return [...filteredExpenses]
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-  }, [filteredExpenses]);
+  const monthlyTrend = useMemo(() => {
+    // API returns: [{ _id: { year: 2026, month: 2 }, total: 306, count: 2 }, ...]
+    if (expenseTrends.length > 0) {
+      return expenseTrends.map(d => {
+        const { year, month } = d._id;
+        const label = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        return {
+          date: label,
+          expense: d.total ?? 0,
+          income: 0,   // trends endpoint is expense-only; income overlay via allIncome if needed
+          balance: -(d.total ?? 0),
+        };
+      });
+    }
+    // Fallback: compute locally from raw transactions
+    const grouped = {};
+    allTransactions.forEach(t => {
+      const key = t.date?.split('T')[0] ?? t.date;
+      if (!grouped[key]) grouped[key] = { income: 0, expense: 0 };
+      if (t.type === 'income')  grouped[key].income  += t.amount ?? 0;
+      if (t.type === 'expense') grouped[key].expense += t.amount ?? 0;
+    });
+    return Object.entries(grouped).sort().map(([date, vals]) => ({
+      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      ...vals,
+      balance: vals.income - vals.expense,
+    }));
+  }, [expenseTrends, allTransactions]);
 
-  // Handle export
+  const topExpenses = useMemo(() =>
+    [...allExpenses].sort((a, b) => b.amount - a.amount).slice(0, 5),
+  [allExpenses]);
+
+  // ── Export ─────────────────────────────────────────────────────────────────
   const handleExport = (type) => {
     const exportData = {
-      totalIncome,
-      totalExpense,
-      balance,
-      transactions: filteredTransactions,
+      totalIncome, totalExpense, balance,
+      transactions: allTransactions,
       categoryBreakdown: expenseByCategory.reduce((acc, cat) => {
         acc[cat.name] = { category: cat.name, total: cat.value, count: 1 };
         return acc;
       }, {}),
     };
-
     try {
       switch (type) {
-        case 'pdf':
-          exportService.exportToPDF(exportData, `report-${Date.now()}.pdf`);
-          break;
-        case 'excel':
-          exportService.exportToExcel(exportData, `report-${Date.now()}.xlsx`);
-          break;
-        case 'csv':
-          exportService.exportToCSV(filteredTransactions, `transactions-${Date.now()}.csv`);
-          break;
-        default:
-          break;
+        case 'pdf':   exportService.exportToPDF(exportData,      `report-${Date.now()}.pdf`);  break;
+        case 'excel': exportService.exportToExcel(exportData,    `report-${Date.now()}.xlsx`); break;
+        case 'csv':   exportService.exportToCSV(allTransactions, `transactions-${Date.now()}.csv`); break;
+        default: break;
       }
       toast.success(`Report exported as ${type.toUpperCase()}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to export report');
     }
   };
 
+  // ── Quick-range helpers ────────────────────────────────────────────────────
+  const setThisMonth = () => {
+    const today = new Date();
+    setDateRange({
+      startDate: new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0],
+    });
+  };
+  const setLastMonth = () => {
+    const today = new Date();
+    setDateRange({
+      startDate: new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0],
+      endDate: new Date(today.getFullYear(), today.getMonth(), 0).toISOString().split('T')[0],
+    });
+  };
+  const setThisYear = () => {
+    const today = new Date();
+    setDateRange({
+      startDate: new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0],
+    });
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -121,6 +301,14 @@ const Reports = () => {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Reports & Analytics</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Analyze your financial data</p>
         </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isAnythingLoading}
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+        >
+          <RefreshCw size={16} className={isAnythingLoading ? 'animate-spin' : ''} />
+          {isAnythingLoading ? 'Loading…' : 'Refresh'}
+        </button>
       </div>
 
       {/* Filters */}
@@ -138,7 +326,6 @@ const Reports = () => {
               />
             </div>
           </div>
-
           <div>
             <label className="label">End Date</label>
             <div className="relative">
@@ -151,16 +338,11 @@ const Reports = () => {
               />
             </div>
           </div>
-
           <div>
             <label className="label">Report Type</label>
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <select
-                value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                className="input-field pl-10"
-              >
+              <select value={reportType} onChange={(e) => setReportType(e.target.value)} className="input-field pl-10">
                 <option value="overview">Overview</option>
                 <option value="income">Income Analysis</option>
                 <option value="expense">Expense Analysis</option>
@@ -169,173 +351,176 @@ const Reports = () => {
             </div>
           </div>
         </div>
-
         <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            onClick={() => {
-              const today = new Date();
-              setDateRange({
-                startDate: new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0],
-                endDate: today.toISOString().split('T')[0],
-              });
-            }}
-            className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            This Month
-          </button>
-          <button
-            onClick={() => {
-              const today = new Date();
-              const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-              const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-              setDateRange({
-                startDate: lastMonth.toISOString().split('T')[0],
-                endDate: lastMonthEnd.toISOString().split('T')[0],
-              });
-            }}
-            className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            Last Month
-          </button>
-          <button
-            onClick={() => {
-              const today = new Date();
-              setDateRange({
-                startDate: new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0],
-                endDate: today.toISOString().split('T')[0],
-              });
-            }}
-            className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            This Year
-          </button>
+          {[
+            { label: 'This Month', fn: setThisMonth },
+            { label: 'Last Month', fn: setLastMonth },
+            { label: 'This Year',  fn: setThisYear  },
+          ].map(({ label, fn }) => (
+            <button key={label} onClick={fn}
+              className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
-              <h3 className="text-2xl font-bold text-green-900 dark:text-white">
-                {formatCurrency(totalIncome, currency)}
-              </h3>
+        {loadingFinancialSummary || loadingAllIncome ? (
+          Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+        ) : (
+          <>
+            <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+                  <h3 className="text-2xl font-bold text-green-900 dark:text-white">{formatCurrency(totalIncome, currency)}</h3>
+                  {allIncome.length > 0 && <p className="text-xs text-green-700 dark:text-green-300 mt-1">{allIncome.length} entries</p>}
+                </div>
+                <TrendingUp className="text-income" size={32} />
+              </div>
             </div>
-            <TrendingUp className="text-income" size={32} />
-          </div>
-        </div>
 
-        <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
-              <h3 className="text-2xl font-bold text-red-900 dark:text-white">
-                {formatCurrency(totalExpense, currency)}
-              </h3>
+            <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
+                  <h3 className="text-2xl font-bold text-red-900 dark:text-white">{formatCurrency(totalExpense, currency)}</h3>
+                  {totalCount > 0 && <p className="text-xs text-red-700 dark:text-red-300 mt-1">{totalCount} entries</p>}
+                </div>
+                <TrendingDown className="text-expense" size={32} />
+              </div>
             </div>
-            <TrendingDown className="text-expense" size={32} />
-          </div>
-        </div>
 
-        <div className="card bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">Balance</p>
-              <h3 className="text-2xl font-bold text-primary-900 dark:text-white">
-                {formatCurrency(balance, currency)}
-              </h3>
+            <div className="card bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">Balance</p>
+                  <h3 className={`text-2xl font-bold ${balance >= 0 ? 'text-primary-900 dark:text-white' : 'text-red-700 dark:text-red-300'}`}>
+                    {formatCurrency(balance, currency)}
+                  </h3>
+                </div>
+                <PieChartIcon className="text-primary-600" size={32} />
+              </div>
             </div>
-            <PieChartIcon className="text-primary-600" size={32} />
-          </div>
-        </div>
 
-        <div className="card bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">Savings Rate</p>
-              <h3 className="text-2xl font-bold text-blue-900 dark:text-white">
-                {savingsRate}%
-              </h3>
+            <div className="card bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">Savings Rate</p>
+                  <h3 className="text-2xl font-bold text-blue-900 dark:text-white">{savingsRate}%</h3>
+                </div>
+                <TrendingUp className="text-blue-600" size={32} />
+              </div>
             </div>
-            <TrendingUp className="text-blue-600" size={32} />
-          </div>
-        </div>
+          </>
+        )}
       </div>
+
+      {/* Insights strip */}
+      {insights?.tips?.length > 0 && !loadingInsights && (
+        <div className="card border-l-4 border-primary-500 bg-primary-50 dark:bg-primary-900/20">
+          <h3 className="text-sm font-semibold text-primary-800 dark:text-primary-300 mb-2">💡 Insights</h3>
+          <ul className="space-y-1">
+            {insights.tips.slice(0, 3).map((tip, i) => (
+              <li key={i} className="text-sm text-primary-700 dark:text-primary-300">• {tip}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         {/* Income vs Expense Trend */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Income vs Expense Trend</h3>
+        {loadingExpenseTrends || loadingAllIncome ? <ChartSkeleton /> : (
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Income vs Expense Trend</h3>
+            {monthlyTrend.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No data for this period</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={monthlyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(value, currency)}
+                    contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="income"  stroke="#10b981" strokeWidth={2} name="Income" />
+                  <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name="Expense" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={monthlyTrend}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => formatCurrency(value, currency)}
-                contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px' }}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name="Income" />
-              <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name="Expense" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        )}
 
         {/* Expense by Category */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Expense by Category</h3>
+        {loadingExpenseSummary ? <ChartSkeleton /> : (
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Expense by Category</h3>
+            {expenseByCategory.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No expense data</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie data={expenseByCategory} cx="50%" cy="50%" labelLine={false}
+                    label={(entry) => entry.name} outerRadius={100} dataKey="value">
+                    {expenseByCategory.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(value, currency)} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={expenseByCategory}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry) => entry.name}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {expenseByCategory.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => formatCurrency(value, currency)} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        )}
 
         {/* Category Comparison */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Category Comparison</h3>
+        {loadingExpenseSummary ? <ChartSkeleton /> : (
+          <div className="card">
+            <h3 className="text-lg font-semibold mb-4">Category Comparison</h3>
+            {expenseByCategory.length === 0 ? (
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No expense data</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={expenseByCategory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatCurrency(value, currency)} />
+                  <Bar dataKey="value" fill="#0ea5e9" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={expenseByCategory}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(value, currency)} />
-              <Bar dataKey="value" fill="#0ea5e9" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        )}
 
         {/* Top Expenses */}
         <div className="card">
           <h3 className="text-lg font-semibold mb-4">Top 5 Expenses</h3>
-          <div className="space-y-3">
-            {topExpenses.length === 0 ? (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-8">No expenses in this period</p>
-            ) : (
-              topExpenses.map((expense, index) => (
+          {loadingAllExpenses ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-lg">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-5 w-20" />
+                </div>
+              ))}
+            </div>
+          ) : topExpenses.length === 0 ? (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">No expenses in this period</p>
+          ) : (
+            <div className="space-y-3">
+              {topExpenses.map((expense, index) => (
                 <div key={expense.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center gap-3">
                     <span className="w-8 h-8 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center text-sm font-semibold">
@@ -346,13 +531,11 @@ const Reports = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400">{expense.category}</p>
                     </div>
                   </div>
-                  <span className="font-semibold text-expense">
-                    {formatCurrency(expense.amount, currency)}
-                  </span>
+                  <span className="font-semibold text-expense">{formatCurrency(expense.amount, currency)}</span>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -361,11 +544,9 @@ const Reports = () => {
         <h3 className="text-lg font-semibold mb-4">Export Report</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {EXPORT_TYPES.map((type) => (
-            <button
-              key={type.value}
-              onClick={() => handleExport(type.value)}
-              className="flex items-center justify-center gap-2 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
-            >
+            <button key={type.value} onClick={() => handleExport(type.value)}
+              disabled={isAnythingLoading}
+              className="flex items-center justify-center gap-2 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors disabled:opacity-50">
               <span className="text-2xl">{type.icon}</span>
               <div className="text-left">
                 <p className="font-semibold text-gray-800 dark:text-gray-200">{type.label}</p>
@@ -379,31 +560,39 @@ const Reports = () => {
       {/* Transaction Summary */}
       <div className="card">
         <h3 className="text-lg font-semibold mb-4">Transaction Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
-            <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{filteredTransactions.length}</p>
+        {loadingAllExpenses || loadingAllIncome ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            ))}
           </div>
-          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <p className="text-sm text-green-600 dark:text-green-400 mb-1">Income Entries</p>
-            <p className="text-2xl font-bold text-green-700 dark:text-green-300">{filteredIncomes.length}</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
+              <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{allTransactions.length}</p>
+            </div>
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <p className="text-sm text-green-600 dark:text-green-400 mb-1">Income Entries</p>
+              <p className="text-2xl font-bold text-green-700 dark:text-green-300">{allIncome.length}</p>
+            </div>
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400 mb-1">Expense Entries</p>
+              <p className="text-2xl font-bold text-red-700 dark:text-red-300">{totalCount}</p>
+            </div>
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm text-blue-600 dark:text-blue-400 mb-1">Avg Transaction</p>
+              <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                {allTransactions.length > 0
+                  ? formatCurrency(allTransactions.reduce((s, t) => s + t.amount, 0) / allTransactions.length, currency)
+                  : formatCurrency(0, currency)}
+              </p>
+            </div>
           </div>
-          <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400 mb-1">Expense Entries</p>
-            <p className="text-2xl font-bold text-red-700 dark:text-red-300">{filteredExpenses.length}</p>
-          </div>
-          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm text-blue-600 dark:text-blue-400 mb-1">Avg Transaction</p>
-            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-              {filteredTransactions.length > 0 
-                ? formatCurrency(
-                    filteredTransactions.reduce((sum, t) => sum + t.amount, 0) / filteredTransactions.length,
-                    currency
-                  )
-                : formatCurrency(0, currency)}
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
