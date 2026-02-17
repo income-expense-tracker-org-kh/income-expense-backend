@@ -28,11 +28,32 @@ export const EXPENSE_CATEGORIES = [
 // Payment Methods
 export const PAYMENT_METHODS = [
   { id: 'cash', name: 'Cash', icon: '💵' },
-  { id: 'card', name: 'Credit/Debit Card', icon: '💳' },
+  { id: 'credit_card', name: 'Credit Card', icon: '💳' },
+  { id: 'debit_card', name: 'Debit Card', icon: '💳' },
   { id: 'upi', name: 'UPI', icon: '📲' },
-  { id: 'bank', name: 'Bank Transfer', icon: '🏦' },
-  { id: 'wallet', name: 'Digital Wallet', icon: '👛' },
+  { id: 'bank_transfer', name: 'Bank Transfer', icon: '🏦' },
+  { id: 'other', name: 'Other', icon: '👛' },
 ];
+
+export const getPaymentMethodLabel = (method) => {
+  switch (method) {
+    case 'cash':
+      return 'Cash';
+    case 'credit_card':
+      return 'Credit Card';
+    case 'debit_card':
+      return 'Debit Card';
+    case 'upi':
+      return 'UPI';
+    case 'bank_transfer':
+      return 'Bank Transfer';
+    case 'other':
+      return 'Other';
+    default:
+      return method;
+  }
+};
+
 
 // Currencies
 export const CURRENCIES = [

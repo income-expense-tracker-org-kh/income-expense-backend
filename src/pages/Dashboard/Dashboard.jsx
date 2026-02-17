@@ -1,48 +1,186 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Wallet, Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useTransactionStore } from '../../store/transactionStore';
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useSettingsStore } from '../../store/settingsStore';
 import { formatCurrency } from '../../utils/helpers';
 import { CHART_COLORS } from '../../constants';
+import { dashboardService } from '../../services/dashboardService';
+import toast from 'react-hot-toast';
+import moment from 'moment';
 
 const Dashboard = () => {
-  const { transactions, incomes, expenses, getTotalIncome, getTotalExpense, getBalance } = useTransactionStore();
   const { currency } = useSettingsStore();
+  const [dashboardData, setDashboardData] = useState(null)
+  const [loading, setLoading] = useState(false)
 
-  const totalIncome = getTotalIncome();
-  const totalExpense = getTotalExpense();
-  const balance = getBalance();
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      const res = await dashboardService.getAll();
+      setDashboardData(res?.data);
+    } catch (error) {
+      toast.error('Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  // ─── Skeleton primitives ──────────────────────────────────────────────────────
+
+  const Skeleton = ({ className = '' }) => (
+    <div
+      className={`animate-pulse rounded bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:400%_100%] ${className}`}
+      style={{ animation: 'shimmer 1.6s ease-in-out infinite' }}
+    />
+  );
+
+  const SkeletonCard = () => (
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-9 w-9 rounded-xl" />
+      </div>
+      <Skeleton className="h-8 w-36" />
+      <Skeleton className="h-3 w-24" />
+    </div>
+  );
+
+  const SkeletonChart = ({ height = 'h-64' }) => (
+    <div className={`rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4`}>
+      <Skeleton className="h-5 w-48" />
+      <Skeleton className={`w-full ${height} rounded-xl`} />
+    </div>
+  );
+
+  const SkeletonRow = () => (
+    <div className="flex items-center gap-4 py-3">
+      <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+      <div className="text-right space-y-2">
+        <Skeleton className="h-4 w-20 ml-auto" />
+        <Skeleton className="h-3 w-16 ml-auto" />
+      </div>
+    </div>
+  );
+
+  // ─── Skeleton overlay for the full Dashboard ─────────────────────────────────
+
+  const DashboardSkeleton = () => (
+    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+      {/* header */}
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+
+      {/* stat cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+
+      {/* charts row */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <SkeletonChart height="h-72" />
+        </div>
+        <SkeletonChart height="h-72" />
+      </div>
+
+      {/* recent transactions */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="divide-y divide-gray-50">
+          {[...Array(4)].map((_, i) => <SkeletonRow key={i} />)}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ===== LOADING SCREEN =====
+  if (loading) return <DashboardSkeleton />;
+  console.log("dashboardData", dashboardData)
+
+  // ===== OVERVIEW =====
+
+  // ── Overview ──────────────────────────────────────────────────────────────
+  const totalIncome = dashboardData?.overview?.monthlyIncome || 0;
+  const totalExpense = dashboardData?.overview?.monthlyExpense || 0;
+  const balance = dashboardData?.overview?.totalBalance || 0;
+  const savingsRate = dashboardData?.overview?.savingsRate || '0.00';
+  const monthlySavings = dashboardData?.overview?.monthlySavings || 0;
+
+  const comparison = dashboardData?.comparison || {};
+  const pctChange = parseFloat(comparison.percentageChange || 0);
+  const prevMonth = comparison.previousMonth || 0;
+  const currMonth = comparison.currentMonth || 0;
 
   // Sample data - Replace with actual data
-  const monthlyData = [
-    { month: 'Jan', income: 5000, expense: 3500 },
-    { month: 'Feb', income: 5500, expense: 4000 },
-    { month: 'Mar', income: 6000, expense: 4200 },
-    { month: 'Apr', income: 5800, expense: 3800 },
-    { month: 'May', income: 6200, expense: 4500 },
-    { month: 'Jun', income: 6500, expense: 4800 },
-  ];
+  // ── Monthly trend data ────────────────────────────────────────────────────
+  // Build the chart from real API data. The API gives us the current month's
+  // income/expense plus the previous month's expense total. We derive income
+  // for the previous month if savingsRate is available, otherwise use expense.
+  // Extend with any monthlyTrend array the API might return in the future.
+  const buildMonthlyData = () => {
+    const trend = dashboardData?.monthlyTrend; // optional array from API
 
-  const categoryData = [
-    { name: 'Food', value: 1200 },
-    { name: 'Rent', value: 2000 },
-    { name: 'Transport', value: 500 },
-    { name: 'Shopping', value: 800 },
-    { name: 'Bills', value: 600 },
-    { name: 'Other', value: 400 },
-  ];
+    // If the API already returns a monthly trend array, use it directly
+    if (Array.isArray(trend) && trend.length > 0) {
+      return trend.map((item) => ({
+        month: item.month || item._id || '',
+        income: item.income || item.totalIncome || 0,
+        expense: item.expense || item.totalExpense || 0,
+      }));
+    }
 
-  const recentTransactions = [
-    { id: 1, type: 'expense', category: 'Food', description: 'Grocery Shopping', amount: 150, date: '2024-02-13' },
-    { id: 2, type: 'income', category: 'Salary', description: 'Monthly Salary', amount: 5000, date: '2024-02-12' },
-    { id: 3, type: 'expense', category: 'Transport', description: 'Fuel', amount: 80, date: '2024-02-11' },
-    { id: 4, type: 'expense', category: 'Shopping', description: 'Clothing', amount: 200, date: '2024-02-10' },
-  ];
+    // Build a 2-point chart from current + previous month comparison data
+    const now = moment();
+    const currentMonthLabel = now.format('MMM');
+    const previousMonthLabel = now.subtract(1, 'month').format('MMM');
+
+    // Estimate previous month income: if savings rate is the same it would be
+    // prevExpense / (1 - savingsRate). We keep it simple and show what we have.
+    const prevIncome = prevMonth > 0
+      ? Math.round(prevMonth / (1 - parseFloat(savingsRate) / 100) || prevMonth)
+      : 0;
+
+    return [
+      { month: previousMonthLabel, income: prevIncome, expense: prevMonth },
+      { month: currentMonthLabel, income: totalIncome, expense: totalExpense },
+    ];
+  };
+
+  const monthlyData = buildMonthlyData();
+
+
+  // ===== CATEGORY PIE DATA =====
+  const categoryData =
+    dashboardData?.expensesByCategory?.map((item) => ({
+      name: item._id,
+      value: item.total,
+    })) || [];
+
+  // ===== RECENT TRANSACTIONS =====
+  const recentTransactions = dashboardData?.recentTransactions ?? [];
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @keyframes income-shimmer {
+          0%   { background-position: 100% 0 }
+          100% { background-position: -100% 0 }
+        }
+      `}</style>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Income */}
@@ -181,9 +319,8 @@ const Dashboard = () => {
           {recentTransactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  transaction.type === 'income' ? 'bg-income-light dark:bg-income-dark/20' : 'bg-expense-light dark:bg-expense-dark/20'
-                }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${transaction.type === 'income' ? 'bg-income-light dark:bg-income-dark/20' : 'bg-expense-light dark:bg-expense-dark/20'
+                  }`}>
                   {transaction.type === 'income' ? (
                     <TrendingUp className="text-income" size={20} />
                   ) : (
@@ -196,12 +333,11 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-semibold ${
-                  transaction.type === 'income' ? 'text-income' : 'text-expense'
-                }`}>
+                <p className={`font-semibold ${transaction.type === 'income' ? 'text-income' : 'text-expense'
+                  }`}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount, currency)}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.date}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{moment(transaction.date).format('DD/MM/YYYY')}</p>
               </div>
             </div>
           ))}
