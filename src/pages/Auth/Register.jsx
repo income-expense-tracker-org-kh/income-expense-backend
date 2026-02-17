@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { authService } from '../../services/authService';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -40,17 +41,29 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Simulate API call - Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      toast.success('Registration successful! Please login.');
-      navigate('/login');
+      await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        currency: 'USD',
+        language: 'en',
+      });
+
+      toast.success('Registration successful!');
+
+      // If backend auto-login → go dashboard
+      navigate('/dashboard');
+
+      // If backend does NOT return token → use this instead:
+      // navigate('/login');
+
     } catch (error) {
-      toast.error('Registration failed. Please try again.');
+      toast.error(error.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div>
