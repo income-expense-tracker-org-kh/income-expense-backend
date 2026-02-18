@@ -45,7 +45,9 @@
     "viewReports": "View Reports",
     "recentTransactions": "Recent Transactions",
     "incomeVsExpense": "Income vs Expense Trend",
-    "expenseByCategory": "Expense by Category"
+    "expenseByCategory": "Expense by Category",
+    "fromLastMonth": "From Last Month",
+    "vsPrevMonth": "vs Previous Month"
   },
   "income": {
     "title": "Income Management",
@@ -65,7 +67,11 @@
     "totalIncome": "Total Income",
     "transactions": "transaction(s)",
     "noRecords": "No income records found",
+    "incomeRecords": "Income Records",
+    "action": "Actions",
+    "healthysavings" :"Healthy Savings",
     "addFirst": "Add Your First Income",
+    "addNote":"Add a note...",
     "categories": {
       "salary": "Salary",
       "business": "Business",

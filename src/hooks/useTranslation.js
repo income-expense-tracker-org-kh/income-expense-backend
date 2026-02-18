@@ -10,7 +10,17 @@ const translations = {
 };
 
 export const useTranslation = (currentLang = 'en') => {
-  const [lang, setLang] = useState(currentLang);
+  const [lang, setLang] = useState(() => {
+    const savedLang = localStorage.getItem('app_language');
+    return (savedLang && translations[savedLang]) ? savedLang : currentLang;
+  });
+
+  // ✅ Sync when currentLang prop changes
+  useEffect(() => {
+    if (currentLang && translations[currentLang]) {
+      setLang(currentLang);
+    }
+  }, [currentLang]);
 
   const t = useCallback((key, params = {}) => {
     const keys = key.split('.');
@@ -20,11 +30,10 @@ export const useTranslation = (currentLang = 'en') => {
       if (value && typeof value === 'object') {
         value = value[k];
       } else {
-        return key; // Return key if translation not found
+        return key;
       }
     }
 
-    // Replace parameters in translation
     if (typeof value === 'string' && Object.keys(params).length > 0) {
       return value.replace(/\{(\w+)\}/g, (match, paramKey) => {
         return params[paramKey] !== undefined ? params[paramKey] : match;
@@ -38,13 +47,6 @@ export const useTranslation = (currentLang = 'en') => {
     if (translations[newLang]) {
       setLang(newLang);
       localStorage.setItem('app_language', newLang);
-    }
-  }, []);
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('app_language');
-    if (savedLang && translations[savedLang]) {
-      setLang(savedLang);
     }
   }, []);
 

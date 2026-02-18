@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '../../utils/helpers';
 import { EXPENSE_CATEGORIES, getPaymentMethodLabel, PAYMENT_METHODS } from '../../constants';
 import toast from 'react-hot-toast';
 import { expenseService } from '../../services/expenseService';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton primitives ───────────────────────────────────────────────────────
 
@@ -118,8 +119,8 @@ const ExpenseSkeleton = () => (
 // ─── Main Expense component ────────────────────────────────────────────────────
 
 const Expense = () => {
-  const { currency, dateFormat } = useSettingsStore();
-
+  const { currency, dateFormat, language } = useSettingsStore();
+  const { t } = useTranslation(language);
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -296,12 +297,12 @@ const Expense = () => {
         {/* ── Header ───────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Expense Management</h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Track and manage your expenses</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("expense.title")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("expense.subtitle")}</p>
           </div>
           <button onClick={handleAdd} className="btn-danger flex items-center gap-2">
             <Plus size={20} />
-            Add Expense
+            {t("expense.addExpense")}
           </button>
         </div>
 

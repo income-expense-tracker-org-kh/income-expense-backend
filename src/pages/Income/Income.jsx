@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '../../utils/helpers';
 import { INCOME_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
 import { incomeService } from '../../services/incomeService';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton primitives ───────────────────────────────────────────────────────
 
@@ -116,8 +117,8 @@ const IncomeSkeleton = () => (
 // ─── Main Income component ─────────────────────────────────────────────────────
 
 const Income = () => {
-  const { currency, dateFormat } = useSettingsStore();
-
+  const { currency, dateFormat, language } = useSettingsStore();
+  const { t } = useTranslation(language);
   const [showModal, setShowModal] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -270,12 +271,12 @@ const Income = () => {
         {/* ── Header ───────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Income Management</h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Track and manage your income sources</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("income.title")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("income.subtitle")}</p>
           </div>
           <button onClick={handleAdd} className="btn-success flex items-center gap-2">
             <Plus size={20} />
-            Add Income
+            {t("income.addIncome")}
           </button>
         </div>
 
@@ -283,12 +284,12 @@ const Income = () => {
         <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+              <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("income.totalIncome")}</p>
               <h3 className="text-3xl font-bold text-green-900 dark:text-white">
                 {formatCurrency(totalIncome, currency)}
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                {filteredIncomes.length} transaction{filteredIncomes.length !== 1 ? 's' : ''}
+                {filteredIncomes.length} {t("income.transactions")}{filteredIncomes.length !== 1 ? '' : ''}
               </p>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-green-800 rounded-full flex items-center justify-center">
@@ -304,7 +305,7 @@ const Income = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search income..."
+                placeholder={t("common.search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -317,10 +318,10 @@ const Income = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="input-field pl-10"
               >
-                <option value="all">All Categories</option>
+                <option value="all">{t("transactions.allCategories")}</option>
                 {INCOME_CATEGORIES.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
+                    {cat.icon} {t(`income.categories.${cat.id}`)}
                   </option>
                 ))}
               </select>
@@ -330,14 +331,14 @@ const Income = () => {
 
         {/* ── Table ────────────────────────────────────────────────────── */}
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Income Records</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("income.incomeRecords")}</h3>
 
           {filteredIncomes.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-500 dark:text-gray-400">No income records found</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("income.noRecords")}</p>
               <button onClick={handleAdd} className="btn-primary mt-4">
-                Add Your First Income
+                {t("income.addFirst")}
               </button>
             </div>
           ) : (
@@ -345,11 +346,11 @@ const Income = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Date</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Category</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Description</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Amount</th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.date")}</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.category")}</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.description")}</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.amount")}</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.action")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -367,14 +368,14 @@ const Income = () => {
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-2 px-3 py-1 bg-income-light dark:bg-income-dark/20 text-income-dark dark:text-income-light rounded-full text-sm">
                           <span>{getCategoryIcon(income.category)}</span>
-                          {income.category}
+                          {(t(`income.categories.${income.category}`))}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                         {income.description || '-'}
                         {income.isRecurring && (
                           <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">
-                            Recurring
+                            {t("income.recurring")}
                           </span>
                         )}
                       </td>
@@ -413,7 +414,7 @@ const Income = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                  {editingIncome ? 'Edit Income' : 'Add Income'}
+                  {editingIncome ? t("income.editIncome") : t("income.addIncome")}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
@@ -425,7 +426,7 @@ const Income = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="label">Amount *</label>
+                  <label className="label">{t("income.amount")} *</label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
@@ -442,7 +443,7 @@ const Income = () => {
                 </div>
 
                 <div>
-                  <label className="label">Category *</label>
+                  <label className="label">{t("income.category")} *</label>
                   <select
                     name="category"
                     value={formData.category}
@@ -450,17 +451,17 @@ const Income = () => {
                     className="input-field"
                     required
                   >
-                    <option value="">Select category</option>
+                    <option value="">{t("income.category")} </option>
                     {INCOME_CATEGORIES.map((cat) => (
                       <option key={cat.id} value={cat.id}>
-                        {cat.icon} {cat.name}
+                        {cat.icon} {t(`income.categories.${cat.id}`)}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="label">Date *</label>
+                  <label className="label">{t("income.date")}  *</label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
@@ -475,7 +476,7 @@ const Income = () => {
                 </div>
 
                 <div>
-                  <label className="label">Description</label>
+                  <label className="label">{t("income.description")} </label>
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
                     <textarea
@@ -484,7 +485,7 @@ const Income = () => {
                       onChange={handleChange}
                       className="input-field pl-10"
                       rows="3"
-                      placeholder="Add a note..."
+                      placeholder={t("income.addNote")}
                     />
                   </div>
                 </div>
@@ -499,23 +500,23 @@ const Income = () => {
                     id="isRecurring"
                   />
                   <label htmlFor="isRecurring" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Recurring income
+                    {t("income.recurring")}
                   </label>
                 </div>
 
                 {formData.isRecurring && (
                   <div>
-                    <label className="label">Recurring Period</label>
+                    <label className="label">{t("income.recurringPeriod")}</label>
                     <select
                       name="recurringPeriod"
                       value={formData.recurringPeriod}
                       onChange={handleChange}
                       className="input-field"
                     >
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="quarterly">Quarterly</option>
-                      <option value="yearly">Yearly</option>
+                      <option value="weekly">{t("income.weekly")}</option>
+                      <option value="monthly">{t("income.monthly")}</option>
+                      <option value="quarterly">{t("income.quarterly")}</option>
+                      <option value="yearly">{t("income.yearly")}</option>
                     </select>
                   </div>
                 )}
@@ -526,10 +527,10 @@ const Income = () => {
                     onClick={() => setShowModal(false)}
                     className="flex-1 btn-secondary"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                   <button type="submit" className="flex-1 btn-success">
-                    {editingIncome ? 'Update' : 'Add'} Income
+                    {editingIncome ? t("common.edit") : t("common.add")}{t("settings.income")}
                   </button>
                 </div>
               </form>
