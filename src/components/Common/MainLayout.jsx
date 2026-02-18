@@ -25,6 +25,7 @@ import { useSettingsStore } from '../../store/settingsStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { LANGUAGES } from '../../constants';
 import toast from 'react-hot-toast';
+import logo from "../../assets/logo.png";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -153,9 +154,7 @@ const MainLayout = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h1 className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-              FinTracker
-            </h1>
+            <img src={logo} alt="FinTracker Logo" className="h-50 w-50" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"

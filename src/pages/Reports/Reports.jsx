@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Calendar, Filter, TrendingUp, TrendingDown, PieChart as PieChartIcon, RefreshCw } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -66,7 +66,7 @@ const Reports = () => {
 
   // ── Fetch functions (all follow the same pattern) ─────────────────────────
 
-  const fetchFinancialSummary = async () => {
+  const fetchFinancialSummary = useCallback(async () => {
     try {
       setLoadingFinancialSummary(true);
       const res = await dashboardService.getFinancialSummary(dateRange);
@@ -76,9 +76,9 @@ const Reports = () => {
     } finally {
       setLoadingFinancialSummary(false);
     }
-  };
+  },[dateRange]);
 
-  const fetchInsights = async () => {
+  const fetchInsights = useCallback(async () => {
     try {
       setLoadingInsights(true);
       const res = await dashboardService.getInsights(dateRange);
@@ -88,9 +88,13 @@ const Reports = () => {
     } finally {
       setLoadingInsights(false);
     }
-  };
+  }, [dateRange]); // ✅ add dependencies here
 
-  const fetchExpenseSummary = async () => {
+  useEffect(() => {
+    fetchInsights();
+  }, [fetchInsights]);
+
+  const fetchExpenseSummary = useCallback(async () => {
     try {
       setLoadingExpenseSummary(true);
       const res = await expenseService.getExpenseSummary(dateRange);
@@ -100,9 +104,9 @@ const Reports = () => {
     } finally {
       setLoadingExpenseSummary(false);
     }
-  };
+  },[dateRange]);
 
-  const fetchExpenseTrends = async () => {
+  const fetchExpenseTrends = useCallback(async () => {
     try {
       setLoadingExpenseTrends(true);
       const res = await expenseService.getExpenseTrends(dateRange);
@@ -112,9 +116,9 @@ const Reports = () => {
     } finally {
       setLoadingExpenseTrends(false);
     }
-  };
+  },[dateRange]);
 
-  const fetchAllExpenses = async () => {
+  const fetchAllExpenses = useCallback(async () => {
     try {
       setLoadingAllExpenses(true);
       const res = await expenseService.getAll(dateRange);
@@ -124,9 +128,9 @@ const Reports = () => {
     } finally {
       setLoadingAllExpenses(false);
     }
-  };
+  },[dateRange]);
 
-  const fetchAllIncome = async () => {
+  const fetchAllIncome = useCallback(async () => {
     try {
       setLoadingAllIncome(true);
       const res = await incomeService.getAll(dateRange);
@@ -136,32 +140,28 @@ const Reports = () => {
     } finally {
       setLoadingAllIncome(false);
     }
-  };
+  }, [dateRange]);
 
   // ── Effects ────────────────────────────────────────────────────────────────
   useEffect(() => {
     fetchFinancialSummary();
-  }, [dateRange]);
-
-  useEffect(() => {
-    fetchInsights();
-  }, [dateRange]);
+  }, [fetchFinancialSummary]);
 
   useEffect(() => {
     fetchExpenseSummary();
-  }, [dateRange]);
+  }, [fetchExpenseSummary]);
 
   useEffect(() => {
     fetchExpenseTrends();
-  }, [dateRange]);
+  }, [fetchExpenseTrends]);
 
   useEffect(() => {
     fetchAllExpenses();
-  }, [dateRange]);
+  }, [fetchAllExpenses]);
 
   useEffect(() => {
     fetchAllIncome();
-  }, [dateRange]);
+  }, [fetchAllIncome]);
 
   // ── Refresh all ───────────────────────────────────────────────────────────
   const handleRefresh = () => {
