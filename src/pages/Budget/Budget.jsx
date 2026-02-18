@@ -8,6 +8,7 @@ import { formatCurrency } from '../../utils/helpers';
 import { EXPENSE_CATEGORIES, BUDGET_PERIODS } from '../../constants';
 import toast from 'react-hot-toast';
 import { budgetService } from '../../services/budgetService';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton CSS (dark-mode-aware via CSS variables) ─────────────────────────
 const SKELETON_STYLES = `
@@ -96,7 +97,11 @@ const BudgetSkeleton = () => (
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getCategoryIcon = (id) => EXPENSE_CATEGORIES.find((c) => c.id === id)?.icon || '💰';
-const getCategoryName = (id) => EXPENSE_CATEGORIES.find((c) => c.id === id)?.name || id;
+// const getCategoryName = (key) => {
+//   const id = key.split('.').pop(); // "food"
+//   return EXPENSE_CATEGORIES.find((c) => c.id === id)?.name || key;
+// };
+
 const calcPct = (spent, total) => (total > 0 ? Math.min((spent / total) * 100, 100) : 0);
 const barColor = (pct) => pct >= 100 ? '#ef4444' : pct >= 95 ? '#f97316' : pct >= 80 ? '#eab308' : '#22c55e';
 const StatusIcon = ({ pct }) => {
@@ -109,8 +114,8 @@ const emptyCategory = () => ({ category: '', amount: '', alertThreshold: 80 });
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const Budget = () => {
-  const { currency } = useSettingsStore();
-
+  const { currency, language } = useSettingsStore();
+  const { t } = useTranslation(language);
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -270,28 +275,28 @@ const Budget = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Budget Planning</h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Set and track your spending limits</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("budget.title")}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("budget.subtitle")}</p>
           </div>
           <button onClick={handleAdd} className="btn-primary flex items-center gap-2">
-            <Plus size={20} /> Create Budget
+            <Plus size={20} /> {t("budget.createBudget")}
           </button>
         </div>
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-            <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">Total Budget</p>
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">{t("budget.totalBudget")}</p>
             <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatCurrency(totalBudget, currency)}</h3>
-            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">{budgets.length} budget{budgets.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">{budgets.length} {t("budget.budget")}{budgets.length !== 1 ? '' : ''}</p>
           </div>
           <div className="card bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
-            <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Spent</p>
+            <p className="text-sm text-red-800 dark:text-red-200 mb-1">{t("budget.totalSpent")}</p>
             <h3 className="text-2xl font-bold text-red-900 dark:text-red-100">{formatCurrency(totalSpent, currency)}</h3>
-            <p className="text-xs text-red-700 dark:text-red-300 mt-1">{overallPct.toFixed(1)}% of budget used</p>
+            <p className="text-xs text-red-700 dark:text-red-300 mt-1">{overallPct.toFixed(1)}% {t("budget.ofBudgetUsed")}</p>
           </div>
           <div className="card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-            <p className="text-sm text-green-800 dark:text-green-200 mb-1">Remaining</p>
+            <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("budget.remaining")}</p>
             <h3 className={`text-2xl font-bold ${totalRemaining < 0 ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'}`}>
               {formatCurrency(Math.abs(totalRemaining), currency)}
               {totalRemaining < 0 && <span className="text-sm font-normal ml-1">over</span>}
@@ -304,8 +309,8 @@ const Budget = () => {
           {budgets.length === 0 ? (
             <div className="card text-center py-12">
               <Wallet className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">No budgets created yet</p>
-              <button onClick={handleAdd} className="btn-primary">Create Your First Budget</button>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">{t("budget.noBudgets")}</p>
+              <button onClick={handleAdd} className="btn-primary">{t("budget.createFirst")}</button>
             </div>
           ) : (
             budgets.map((budget) => {
@@ -330,7 +335,7 @@ const Budget = () => {
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="capitalize">{budget.period}</span>
+                        <span className="capitalize">{t(`budget.periods.${budget.period}`)}</span>
                         <span>·</span>
                         <span className="flex items-center gap-1">
                           <Calendar size={12} />
@@ -358,8 +363,8 @@ const Budget = () => {
                   {/* Overall progress bar */}
                   <div className="space-y-1 mb-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Spent: <strong>{formatCurrency(catSpent, currency)}</strong></span>
-                      <span className="text-gray-600 dark:text-gray-400">Total: <strong>{formatCurrency(budget.totalAmount, currency)}</strong></span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("budget.spent")}: <strong>{formatCurrency(catSpent, currency)}</strong></span>
+                      <span className="text-gray-600 dark:text-gray-400">{t("budget.total")}: <strong>{formatCurrency(budget.totalAmount, currency)}</strong></span>
                     </div>
                     <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
@@ -368,10 +373,10 @@ const Budget = () => {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>{pct.toFixed(1)}% used</span>
+                      <span>{pct.toFixed(1)}% {t("budget.used")}</span>
                       {catSpent > budget.totalAmount
                         ? <span className="text-red-500 font-medium">Exceeded by {formatCurrency(catSpent - budget.totalAmount, currency)}</span>
-                        : <span className="text-green-600 font-medium">{formatCurrency(budget.totalAmount - catSpent, currency)} remaining</span>
+                        : <span className="text-green-600 font-medium">{formatCurrency(budget.totalAmount - catSpent, currency)} {t("budget.remaining")}</span>
                       }
                     </div>
                   </div>
@@ -383,14 +388,14 @@ const Budget = () => {
                         : 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300'
                       }`}>
                       <AlertTriangle size={15} />
-                      {pct >= 100 ? 'Budget exceeded!' : `Warning: ${pct.toFixed(0)}% of budget used`}
+                      {pct >= 100 ? t('budget.budgetExceeded') : `Warning: ${pct.toFixed(0)}% of budget used`}
                     </div>
                   )}
 
                   {/* Expandable category breakdown */}
                   {isExpanded && budget.categories?.length > 0 && (
                     <div className="mt-2 border-t border-gray-100 dark:border-gray-700 pt-3 space-y-3">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Category Breakdown</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t("budget.categoryBreakdown")}</p>
                       {budget.categories.map((cat, ci) => {
                         const cp = calcPct(cat.spent ?? 0, cat.amount);
                         return (
@@ -398,7 +403,7 @@ const Budget = () => {
                             <div className="flex items-center justify-between text-sm mb-1">
                               <span className="flex items-center gap-1.5">
                                 <span>{getCategoryIcon(cat.category)}</span>
-                                <span className="font-medium text-gray-700 dark:text-gray-300">{getCategoryName(cat.category)}</span>
+                                <span className="font-medium text-gray-700 dark:text-gray-300">{t(`expense.categories.${cat.category}`)}</span>
                               </span>
                               <span className="text-gray-500 dark:text-gray-400 text-xs">
                                 {formatCurrency(cat.spent ?? 0, currency)} / {formatCurrency(cat.amount, currency)}
@@ -418,14 +423,14 @@ const Budget = () => {
           )}
         </div>
 
-        {/* ── Modal ─────────────────────────────────────────────────────────── */}
+        {/* ==== Modal ==== */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50 overflow-y-auto">
             <div className="bg-white dark:bg-gray-800 rounded-xl max-w-lg w-full p-6 my-8">
 
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                  {editingBudget ? 'Edit Budget' : 'Create Budget'}
+                  {editingBudget ? t('budget.editBudget') : t('budget.createBudget')}
                 </h3>
                 <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                   <X size={24} />
@@ -436,34 +441,34 @@ const Budget = () => {
 
                 {/* Name */}
                 <div>
-                  <label className="label">Budget Name *</label>
+                  <label className="label">{t("budget.budgetName")} *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange}
-                    className="input-field" placeholder="e.g. Monthly Household" required />
+                    className="input-field" placeholder={t("budget.egMonthlyHousehold")} required />
                 </div>
 
                 {/* Period */}
                 <div>
-                  <label className="label">Period *</label>
+                  <label className="label">{t('budget.period')} *</label>
                   <select name="period" value={formData.period} onChange={handleChange} className="input-field" required>
-                    {BUDGET_PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    {BUDGET_PERIODS.map((p) => <option key={p.value} value={p.value}>{t(`budget.periods.${p.value}`)}</option>)}
                   </select>
                 </div>
 
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Start Date *</label>
+                    <label className="label">{t("budget.startDate")} *</label>
                     <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="input-field" required />
                   </div>
                   <div>
-                    <label className="label">End Date *</label>
+                    <label className="label">{t("reports.endDate")} *</label>
                     <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="input-field" required />
                   </div>
                 </div>
 
                 {/* Total amount */}
                 <div>
-                  <label className="label">Total Budget Amount *</label>
+                  <label className="label">{t("budget.totalBudgetAmount")} *</label>
                   <div className="relative">
                     <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input type="number" name="totalAmount" value={formData.totalAmount} onChange={handleChange}
@@ -474,17 +479,17 @@ const Budget = () => {
                 {/* Categories */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="label mb-0">Categories *</label>
+                    <label className="label mb-0">{t("budget.category")} *</label>
                     <button type="button" onClick={addCategoryRow} className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                      <Plus size={14} /> Add Category
+                      <Plus size={14} /> {t("budget.addCategory")}
                     </button>
                   </div>
 
                   {/* Column headers */}
                   <div className="grid grid-cols-[1fr_90px_70px_20px] gap-2 px-1 mb-1">
-                    <span className="text-xs text-gray-400">Category</span>
-                    <span className="text-xs text-gray-400">Amount</span>
-                    <span className="text-xs text-gray-400">Alert %</span>
+                    <span className="text-xs text-gray-400">{t("budget.category")}</span>
+                    <span className="text-xs text-gray-400">{t("budget.amount")}</span>
+                    <span className="text-xs text-gray-400">{t("budget.alert")} %</span>
                     <span />
                   </div>
 
@@ -493,8 +498,8 @@ const Budget = () => {
                       <div key={i} className="grid grid-cols-[1fr_90px_70px_20px] gap-2 items-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <select name="category" value={cat.category} onChange={(e) => handleCatChange(i, e)}
                           className="input-field text-sm py-1.5" required>
-                          <option value="">Select…</option>
-                          {EXPENSE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                          <option value="">{t("budget.select")}</option>
+                          {EXPENSE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.icon} {t(`expense.categories.${c.id}`)}</option>)}
                         </select>
                         <input type="number" name="amount" value={cat.amount} onChange={(e) => handleCatChange(i, e)}
                           className="input-field text-sm py-1.5" placeholder="0.00" step="0.01" min="0" required />
@@ -516,7 +521,7 @@ const Budget = () => {
                 {/* Alerts */}
                 <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-700/40 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Budget Alerts</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("budget.enableAlerts")}</label>
                     <input type="checkbox" name="alertsEnabled" checked={formData.alertsEnabled}
                       onChange={handleChange} id="alertsEnabled"
                       className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
@@ -524,12 +529,12 @@ const Budget = () => {
                   {formData.alertsEnabled && (
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="label text-xs">Warning (%)</label>
+                        <label className="label text-xs">{t("budget.warning")} (%)</label>
                         <input type="number" name="alertWarning" value={formData.alertWarning}
                           onChange={handleChange} className="input-field text-sm" min="1" max="100" />
                       </div>
                       <div>
-                        <label className="label text-xs">Critical (%)</label>
+                        <label className="label text-xs">{t("budget.critical")} (%)</label>
                         <input type="number" name="alertCritical" value={formData.alertCritical}
                           onChange={handleChange} className="input-field text-sm" min="1" max="100" />
                       </div>
@@ -539,15 +544,15 @@ const Budget = () => {
 
                 {/* Notes */}
                 <div>
-                  <label className="label">Notes</label>
+                  <label className="label">{t("budget.notes")}</label>
                   <textarea name="notes" value={formData.notes} onChange={handleChange}
-                    className="input-field" rows="2" placeholder="Optional notes…" />
+                    className="input-field" rows="2" placeholder={t("budget.optionalNotes")} />
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setShowModal(false)} className="flex-1 btn-secondary">Cancel</button>
-                  <button type="submit" className="flex-1 btn-primary">{editingBudget ? 'Update' : 'Create'} Budget</button>
+                  <button type="button" onClick={() => setShowModal(false)} className="flex-1 btn-secondary">{t("common.cancel")}</button>
+                  <button type="submit" className="flex-1 btn-primary">{editingBudget ? t('budget.editBudget') : t('budget.createBudget')}</button>
                 </div>
               </form>
             </div>
