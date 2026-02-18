@@ -1,52 +1,58 @@
-/* Battambang font for Khmer */
+/* ─── Import Battambang font for Khmer ─────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Battambang&display=swap');
 
+/* ─── Tailwind Base ───────────────────────────────────────────── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Apply Battambang when document language is Khmer */
-html[lang="kh"] {
-  font-family: 'Battambang', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-}
-
+/* ─── Apply global styles ─────────────────────────────────────── */
 @layer base {
+
+  /* Default body styles */
   body {
     @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  }
+
+  /* Apply Battambang font when HTML lang is Khmer */
+  html[lang="kh"] body {
+    font-family: 'Battambang', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   }
 }
 
+/* ─── Components ──────────────────────────────────────────────── */
 @layer components {
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .btn-success {
     @apply bg-income hover:bg-income-dark text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .btn-danger {
     @apply bg-expense hover:bg-expense-dark text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
-  
+
   .card {
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-6;
   }
-  
+
   .input-field {
     @apply w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100;
   }
-  
+
   .label {
     @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
   }
 }
 
-/* Custom Scrollbar */
+/* ─── Custom Scrollbar ───────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -64,7 +70,7 @@ html[lang="kh"] {
   @apply bg-gray-400 dark:bg-gray-500;
 }
 
-/* Loading Animation */
+/* ─── Loading Spinner ────────────────────────────────────────── */
 .loading-spinner {
   border: 3px solid rgba(0, 0, 0, 0.1);
   border-top-color: #0ea5e9;
@@ -75,5 +81,7 @@ html[lang="kh"] {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

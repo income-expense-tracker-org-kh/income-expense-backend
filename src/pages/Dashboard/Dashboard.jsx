@@ -8,6 +8,7 @@ import { CHART_COLORS } from '../../constants';
 import { dashboardService } from '../../services/dashboardService';
 import toast from 'react-hot-toast';
 import moment from 'moment';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── CSS variables drive both light and dark skeleton colors ─────────────────
 // .dark class on <html> (Tailwind dark mode) flips all tokens automatically.
@@ -176,9 +177,10 @@ const DashboardSkeleton = () => (
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const { currency } = useSettingsStore();
+  const { currency, language } = useSettingsStore();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation(language);
 
   const fetchDashboard = async () => {
     try {
@@ -238,7 +240,7 @@ const Dashboard = () => {
   };
 
   const monthlyData = buildMonthlyData();
-  const categoryData = dashboardData?.expensesByCategory?.map((item) => ({ name: item._id, value: item.total })) || [];
+  const categoryData = dashboardData?.expensesByCategory?.map((item) => ({ name: t(`expense.categories.${item._id}`), value: item.total })) || [];
   const recentTransactions = dashboardData?.recentTransactions ?? [];
 
   return (
@@ -250,7 +252,7 @@ const Dashboard = () => {
         <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+              <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("dashboard.totalIncome")}</p>
               <h3 className="text-3xl font-bold text-green-900 dark:text-white">
                 {formatCurrency(totalIncome, currency)}
               </h3>
@@ -261,7 +263,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center text-sm text-green-800 dark:text-green-200">
             <ArrowUpRight size={16} className="mr-1" />
-            <span>+12% from last month</span>
+            <span>+12% {t("dashboard.fromLastMonth")}</span>
           </div>
         </div>
 
@@ -269,7 +271,7 @@ const Dashboard = () => {
         <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
+              <p className="text-sm text-red-800 dark:text-red-200 mb-1">{t("dashboard.totalExpense")}</p>
               <h3 className="text-3xl font-bold text-red-900 dark:text-white">
                 {formatCurrency(totalExpense, currency)}
               </h3>
@@ -280,7 +282,7 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center text-sm text-red-800 dark:text-red-200">
             <ArrowDownRight size={16} className="mr-1" />
-            <span>{pctChange > 0 ? `+${pctChange}` : pctChange}% vs prev month</span>
+            <span>{pctChange > 0 ? `+${pctChange}` : pctChange}% {t("dashboard.vsPrevMonth")}</span>
           </div>
         </div>
 
@@ -288,7 +290,7 @@ const Dashboard = () => {
         <div className="card bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">Balance</p>
+              <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">{t("dashboard.balance")}</p>
               <h3 className="text-3xl font-bold text-primary-900 dark:text-white">
                 {formatCurrency(balance, currency)}
               </h3>
@@ -299,30 +301,30 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center text-sm text-primary-800 dark:text-primary-200">
             <ArrowUpRight size={16} className="mr-1" />
-            <span>Healthy savings</span>
+            <span>{t("income.healthysavings")}</span>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("dashboard.quickActions")}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link to="/income" className="flex flex-col items-center p-4 bg-income-light dark:bg-income-dark/20 rounded-lg hover:shadow-md transition-shadow">
             <Plus className="text-income mb-2" size={24} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Income</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.addIncome")}</span>
           </Link>
           <Link to="/expense" className="flex flex-col items-center p-4 bg-expense-light dark:bg-expense-dark/20 rounded-lg hover:shadow-md transition-shadow">
             <Plus className="text-expense mb-2" size={24} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Add Expense</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.addExpense")}</span>
           </Link>
           <Link to="/budget" className="flex flex-col items-center p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:shadow-md transition-shadow">
             <Wallet className="text-primary-600 mb-2" size={24} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Set Budget</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.setBudget")}</span>
           </Link>
           <Link to="/reports" className="flex flex-col items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow">
             <TrendingUp className="text-gray-600 dark:text-gray-400 mb-2" size={24} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View Reports</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.setBudget")}</span>
           </Link>
         </div>
       </div>
@@ -330,7 +332,7 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Income vs Expense Trend</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("dashboard.incomeVsExpense")}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -338,14 +340,14 @@ const Dashboard = () => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name="Income" />
-              <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name="Expense" />
+              <Line type="monotone" dataKey="income" stroke="#10b981" strokeWidth={2} name={t("nav.income")} />
+              <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name={t("nav.expense")} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Expense by Category</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("dashboard.expenseByCategory")}</h3>
           {categoryData.length === 0 ? (
             <div className="flex h-72 items-center justify-center text-sm text-gray-400">
               No expense data yet
@@ -377,12 +379,12 @@ const Dashboard = () => {
       {/* Recent Transactions */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Recent Transactions</h3>
+          <h3 className="text-lg font-semibold">{t("dashboard.recentTransactions")}</h3>
           <Link
             to="/transactions"
             className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
           >
-            View All
+            {t("dashboard.viewReports")}
           </Link>
         </div>
         <div className="space-y-3">
@@ -407,7 +409,11 @@ const Dashboard = () => {
                   <div>
                     <p className="font-medium text-gray-800 dark:text-gray-200">{transaction.description}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {transaction.category || transaction.source || '—'}
+                      {transaction.type === 'income'
+                      ?  t(`income.categories.${transaction.source}`)|| '—'
+                      : t(`expense.categories.${transaction.category}`) || '-'
+                    }
+                      {/* {t(`expense.categories.${transaction.category}`) || t(`income.categories.${transaction.source}`)|| '—'} */}
                     </p>
                   </div>
                 </div>

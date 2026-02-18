@@ -45,7 +45,9 @@
     "viewReports": "查看报告",
     "recentTransactions": "最近交易",
     "incomeVsExpense": "收入vs支出趋势",
-    "expenseByCategory": "按类别支出"
+    "expenseByCategory": "按类别支出",
+    "fromLastMonth": "来自上个月",
+    "vsPrevMonth": "与上个月相比"
   },
   "income": {
     "title": "收入管理",
@@ -66,6 +68,10 @@
     "transactions": "笔交易",
     "noRecords": "未找到收入记录",
     "addFirst": "添加您的第一笔收入",
+    "incomeRecords": "收入记录",
+    "action": "操作",
+    "healthysavings" :"健康储蓄",
+    "addNote":"添加笔记...",
     "categories": {
       "salary": "工资",
       "business": "商业",
