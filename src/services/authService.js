@@ -26,6 +26,16 @@ export const authService = {
       throw error.response?.data || error;
     }
   },
+  // get user me
+  getAll: async () => {
+    return await api.get('/auth/me');
+  },
+
+  // Update Profile
+  updateProfile: async (data) => {
+    return await api.put('/auth/profile', data);
+  },
+
 };
 
 
