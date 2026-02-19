@@ -194,12 +194,19 @@
     "topExpenses": "Top 5 Expenses",
     "noExpenses": "No expenses in this period",
     "exportReport": "Export Report",
-    "downloadAs": "Download as {format}",
+    "downloadAs": "Download as",
     "transactionSummary": "Transaction Summary",
     "totalTransactions": "Total Transactions",
     "incomeEntries": "Income Entries",
     "expenseEntries": "Expense Entries",
-    "avgTransaction": "Avg Transaction"
+    "avgTransaction": "Avg Transaction",
+    "loading": "Loading...",
+    "refresh": "Refresh",
+    "entries": "entries",
+    "insights": "Insights",
+    "noDataForThisPeriod": "No data for this period",
+    "noExpenseData": "No expense data",
+    "recurring" : "Recurring"
   },
   "transactions": {
     "title": "All Transactions",
@@ -248,6 +255,8 @@
     "preferredCurrency": "Preferred Currency",
     "language": "Language",
     "theme": "Theme",
+    "lightMode": "Light Mode",
+    "darkMode":"Dark Mode",
     "notificationPreferences": "Notification Preferences",
     "budgetAlerts": "Budget Alerts",
     "budgetAlertsDesc": "Get notified when approaching budget limits",
@@ -263,7 +272,7 @@
     "monthlyBudgetLimitHelp": "Set a monthly spending limit to help track your budget",
     "securitySettings": "Security Settings",
     "password": "Password",
-    "passwordLastChanged": "Last changed {days} days ago",
+    "passwordLastChanged": "Last changed 30 days ago",
     "changePassword": "Change Password",
     "twoFactorAuth": "Two-Factor Authentication",
     "twoFactorAuthDesc": "Add an extra layer of security",
@@ -285,7 +294,11 @@
       "Cancel any recurring transactions",
       "Permanently erase your account data"
     ],
-    "yesDelete": "Yes, Delete My Account"
+    "yesDelete": "Yes, Delete My Account",
+    "enterMonthlyBudget": "Enter monthly budget",
+    "enterCurrentPassword": "Enter current password",
+    "enterNewPassword": "Enter new password",
+    "enterConfirmPassword": "Enter confirm password"
   },
   "settings": {
     "title": "Settings",
@@ -293,8 +306,8 @@
     "general": "General",
     "appearance": "Appearance",
     "notifications": "Notifications",
-    "dataManagement": "Data Management",
-    "securityPrivacy": "Security & Privacy",
+    "data": "Data Management",
+    "security": "Security & Privacy",
     "generalSettings": "General Settings",
     "defaultCurrency": "Default Currency",
     "currencyHelp": "This will be used for all financial calculations and displays",

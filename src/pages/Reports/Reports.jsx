@@ -9,6 +9,7 @@ import { incomeService } from '../../services/incomeService';
 import { dashboardService } from '../../services/dashboardService';
 import { CHART_COLORS, EXPORT_TYPES } from '../../constants';
 import toast from 'react-hot-toast';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton loader components ───────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -40,8 +41,8 @@ const ChartSkeleton = () => (
 
 // ─── Main component ────────────────────────────────────────────────────────────
 const Reports = () => {
-  const { currency } = useSettingsStore();
-
+  const { currency, language } = useSettingsStore();
+  const { t } = useTranslation(language);
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
@@ -199,7 +200,7 @@ const Reports = () => {
     // API returns byCategory as an array: [{ _id: "rent", total: 300, count: 1, avgAmount: 300 }, ...]
     if (Array.isArray(expenseSummary?.byCategory) && expenseSummary.byCategory.length > 0) {
       return expenseSummary.byCategory.map(cat => ({
-        name: cat._id,
+        name: t(`expense.categories.${cat._id}`),
         value: cat.total,
         count: cat.count,
         avg: cat.avgAmount,
@@ -211,7 +212,7 @@ const Reports = () => {
       grouped[t.category] = (grouped[t.category] || 0) + (t.amount ?? 0);
     });
     return Object.entries(grouped).map(([name, value]) => ({ name, value }));
-  }, [expenseSummary, allExpenses]);
+  }, [expenseSummary, allExpenses, t]);
 
   const monthlyTrend = useMemo(() => {
     // API returns: [{ _id: { year: 2026, month: 2 }, total: 306, count: 2 }, ...]
@@ -298,8 +299,8 @@ const Reports = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Reports & Analytics</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Analyze your financial data</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("reports.title")}</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t("reports.subtitle")}</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -315,7 +316,7 @@ const Reports = () => {
       <div className="card">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="label">Start Date</label>
+            <label className="label">{t("reports.startDate")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -327,7 +328,7 @@ const Reports = () => {
             </div>
           </div>
           <div>
-            <label className="label">End Date</label>
+            <label className="label">{t("reports.endDate")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -339,23 +340,23 @@ const Reports = () => {
             </div>
           </div>
           <div>
-            <label className="label">Report Type</label>
+            <label className="label">{t("reports.reportType")}</label>
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <select value={reportType} onChange={(e) => setReportType(e.target.value)} className="input-field pl-10">
-                <option value="overview">Overview</option>
-                <option value="income">Income Analysis</option>
-                <option value="expense">Expense Analysis</option>
-                <option value="trends">Trends</option>
+                <option value="overview">{t("reports.overview")}</option>
+                <option value="income">{t("reports.incomeAnalysis")}</option>
+                <option value="expense">{t("reports.expenseAnalysis")}</option>
+                <option value="trends">{t("reports.trends")}</option>
               </select>
             </div>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
-            { label: 'This Month', fn: setThisMonth },
-            { label: 'Last Month', fn: setLastMonth },
-            { label: 'This Year',  fn: setThisYear  },
+            { label: t("reports.thisMonth"), fn: setThisMonth },
+            { label: t("reports.lastMonth"), fn: setLastMonth },
+            { label: t("reports.thisYear"),  fn: setThisYear  },
           ].map(({ label, fn }) => (
             <button key={label} onClick={fn}
               className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
@@ -374,9 +375,9 @@ const Reports = () => {
             <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("reports.totalIncome")}</p>
                   <h3 className="text-2xl font-bold text-green-900 dark:text-white">{formatCurrency(totalIncome, currency)}</h3>
-                  {allIncome.length > 0 && <p className="text-xs text-green-700 dark:text-green-300 mt-1">{allIncome.length} entries</p>}
+                  {allIncome.length > 0 && <p className="text-xs text-green-700 dark:text-green-300 mt-1">{allIncome.length} {t("reports.entries")}</p>}
                 </div>
                 <TrendingUp className="text-income" size={32} />
               </div>
@@ -385,9 +386,9 @@ const Reports = () => {
             <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
+                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">{t("reports.totalExpense")}</p>
                   <h3 className="text-2xl font-bold text-red-900 dark:text-white">{formatCurrency(totalExpense, currency)}</h3>
-                  {totalCount > 0 && <p className="text-xs text-red-700 dark:text-red-300 mt-1">{totalCount} entries</p>}
+                  {totalCount > 0 && <p className="text-xs text-red-700 dark:text-red-300 mt-1">{totalCount} {t("reports.entries")}</p>}
                 </div>
                 <TrendingDown className="text-expense" size={32} />
               </div>
@@ -396,7 +397,7 @@ const Reports = () => {
             <div className="card bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">Balance</p>
+                  <p className="text-sm text-primary-800 dark:text-primary-200 mb-1">{t("reports.balance")}</p>
                   <h3 className={`text-2xl font-bold ${balance >= 0 ? 'text-primary-900 dark:text-white' : 'text-red-700 dark:text-red-300'}`}>
                     {formatCurrency(balance, currency)}
                   </h3>
@@ -408,7 +409,7 @@ const Reports = () => {
             <div className="card bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">Savings Rate</p>
+                  <p className="text-sm text-blue-800 dark:text-blue-200 mb-1">{t("reports.savingsRate")}</p>
                   <h3 className="text-2xl font-bold text-blue-900 dark:text-white">{savingsRate}%</h3>
                 </div>
                 <TrendingUp className="text-blue-600" size={32} />
@@ -421,7 +422,7 @@ const Reports = () => {
       {/* Insights strip */}
       {insights?.tips?.length > 0 && !loadingInsights && (
         <div className="card border-l-4 border-primary-500 bg-primary-50 dark:bg-primary-900/20">
-          <h3 className="text-sm font-semibold text-primary-800 dark:text-primary-300 mb-2">💡 Insights</h3>
+          <h3 className="text-sm font-semibold text-primary-800 dark:text-primary-300 mb-2">💡{t("reports.insights")}</h3>
           <ul className="space-y-1">
             {insights.tips.slice(0, 3).map((tip, i) => (
               <li key={i} className="text-sm text-primary-700 dark:text-primary-300">• {tip}</li>
@@ -436,9 +437,9 @@ const Reports = () => {
         {/* Income vs Expense Trend */}
         {loadingExpenseTrends || loadingAllIncome ? <ChartSkeleton /> : (
           <div className="card">
-            <h3 className="text-lg font-semibold mb-4">Income vs Expense Trend</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("reports.incomeVsExpense")}</h3>
             {monthlyTrend.length === 0 ? (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No data for this period</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">{t("reports.noDataForThisPeriod")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={monthlyTrend}>
@@ -450,8 +451,8 @@ const Reports = () => {
                     contentStyle={{ backgroundColor: 'var(--tooltip-bg)', border: 'none', borderRadius: '8px' }}
                   />
                   <Legend />
-                  <Line type="monotone" dataKey="income"  stroke="#10b981" strokeWidth={2} name="Income" />
-                  <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name="Expense" />
+                  <Line type="monotone" dataKey="income"  stroke="#10b981" strokeWidth={2} name={t("settings.income")}/>
+                  <Line type="monotone" dataKey="expense" stroke="#ef4444" strokeWidth={2} name={t("settings.expense")} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -461,9 +462,9 @@ const Reports = () => {
         {/* Expense by Category */}
         {loadingExpenseSummary ? <ChartSkeleton /> : (
           <div className="card">
-            <h3 className="text-lg font-semibold mb-4">Expense by Category</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("reports.expenseByCategory")}</h3>
             {expenseByCategory.length === 0 ? (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No expense data</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">{t("reports.noExpenseData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -483,9 +484,9 @@ const Reports = () => {
         {/* Category Comparison */}
         {loadingExpenseSummary ? <ChartSkeleton /> : (
           <div className="card">
-            <h3 className="text-lg font-semibold mb-4">Category Comparison</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("reports.categoryComparison")}</h3>
             {expenseByCategory.length === 0 ? (
-              <p className="text-center text-gray-500 dark:text-gray-400 py-16">No expense data</p>
+              <p className="text-center text-gray-500 dark:text-gray-400 py-16">{t("reports.noExpenseData")}</p>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={expenseByCategory}>
@@ -502,7 +503,7 @@ const Reports = () => {
 
         {/* Top Expenses */}
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">Top 5 Expenses</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("reports.topExpenses")}</h3>
           {loadingAllExpenses ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -517,7 +518,7 @@ const Reports = () => {
               ))}
             </div>
           ) : topExpenses.length === 0 ? (
-            <p className="text-center text-gray-500 dark:text-gray-400 py-8">No expenses in this period</p>
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">{t("reports.noExpenses")}</p>
           ) : (
             <div className="space-y-3">
               {topExpenses.map((expense, index) => (
@@ -528,7 +529,7 @@ const Reports = () => {
                     </span>
                     <div>
                       <p className="font-medium text-gray-800 dark:text-gray-200">{expense.description || expense.category}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{expense.category}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t(`expense.categories.${(expense.category)}`)}</p>
                     </div>
                   </div>
                   <span className="font-semibold text-expense">{formatCurrency(expense.amount, currency)}</span>
@@ -541,7 +542,7 @@ const Reports = () => {
 
       {/* Export Options */}
       <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Export Report</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("reports.exportReport")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {EXPORT_TYPES.map((type) => (
             <button key={type.value} onClick={() => handleExport(type.value)}
@@ -550,7 +551,7 @@ const Reports = () => {
               <span className="text-2xl">{type.icon}</span>
               <div className="text-left">
                 <p className="font-semibold text-gray-800 dark:text-gray-200">{type.label}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Download as {type.value.toUpperCase()}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("reports.downloadAs")} {type.value.toUpperCase()}</p>
               </div>
             </button>
           ))}
@@ -559,7 +560,7 @@ const Reports = () => {
 
       {/* Transaction Summary */}
       <div className="card">
-        <h3 className="text-lg font-semibold mb-4">Transaction Summary</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("reports.transactionSummary")}</h3>
         {loadingAllExpenses || loadingAllIncome ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -572,19 +573,19 @@ const Reports = () => {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t("reports.totalTransactions")}</p>
               <p className="text-2xl font-bold text-gray-800 dark:text-gray-200">{allTransactions.length}</p>
             </div>
             <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-sm text-green-600 dark:text-green-400 mb-1">Income Entries</p>
+              <p className="text-sm text-green-600 dark:text-green-400 mb-1">{t("reports.incomeEntries")}</p>
               <p className="text-2xl font-bold text-green-700 dark:text-green-300">{allIncome.length}</p>
             </div>
             <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400 mb-1">Expense Entries</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mb-1">{t("reports.expenseEntries")}</p>
               <p className="text-2xl font-bold text-red-700 dark:text-red-300">{totalCount}</p>
             </div>
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-sm text-blue-600 dark:text-blue-400 mb-1">Avg Transaction</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mb-1">{t("reports.avgTransaction")}</p>
               <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                 {allTransactions.length > 0
                   ? formatCurrency(allTransactions.reduce((s, t) => s + t.amount, 0) / allTransactions.length, currency)
