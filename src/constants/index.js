@@ -28,7 +28,7 @@ export const EXPENSE_CATEGORIES = [
 // Payment Methods
 export const PAYMENT_METHODS = [
   { id: 'cash', name: 'Cash', icon: '💵' },
-  { id: 'card', name: 'Credit Card', icon: '💳' },
+  { id: 'credit_card', name: 'Credit Card', icon: '💳' },
   { id: 'upi', name: 'UPI', icon: '📲' },
   { id: 'bank_transfer', name: 'Bank Transfer', icon: '🏦' },
   { id: 'wallet', name: 'Digital Wallet', icon: '👛' },

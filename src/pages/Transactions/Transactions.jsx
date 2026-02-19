@@ -6,6 +6,7 @@ import { expenseService } from '../../services/expenseService';
 import { incomeService } from '../../services/incomeService';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton components ──────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -36,8 +37,8 @@ const RowSkeleton = () => (
 
 // ─── Main component ───────────────────────────────────────────────────────────
 const Transactions = () => {
-  const { currency, dateFormat } = useSettingsStore();
-
+  const { currency, dateFormat, language} = useSettingsStore();
+  const { t } = useTranslation(language);
   // ── Filter state ───────────────────────────────────────────────────────────
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -163,8 +164,8 @@ const Transactions = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">All Transactions</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">View and manage all your financial transactions</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("transactions.title")}</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t("transactions.subtitle")}</p>
         </div>
       </div>
 
@@ -177,7 +178,7 @@ const Transactions = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Transactions</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t("transactions.totalTransactions")}</p>
                   <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{filteredTransactions.length}</h3>
                 </div>
                 <SlidersHorizontal className="text-gray-400" size={32} />
@@ -187,7 +188,7 @@ const Transactions = () => {
             <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">Total Income</p>
+                  <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("transactions.totalIncome")}</p>
                   <h3 className="text-2xl font-bold text-green-900 dark:text-white">
                     {formatCurrency(totalIncome, currency)}
                   </h3>
@@ -199,7 +200,7 @@ const Transactions = () => {
             <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">Total Expense</p>
+                  <p className="text-sm text-red-800 dark:text-red-200 mb-1">{t("transactions.totalExpense")}</p>
                   <h3 className="text-2xl font-bold text-red-900 dark:text-white">
                     {formatCurrency(totalExpense, currency)}
                   </h3>
@@ -218,7 +219,7 @@ const Transactions = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Search transactions..."
+              placeholder={t("transactions.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="input-field pl-10"
@@ -232,9 +233,9 @@ const Transactions = () => {
               onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
               className="input-field pl-10"
             >
-              <option value="all">All Types</option>
-              <option value="income">Income Only</option>
-              <option value="expense">Expense Only</option>
+              <option value="all">{t("transactions.allTypes")}</option>
+              <option value="income">{t("transactions.incomeOnly")}</option>
+              <option value="expense">{t("transactions.expenseOnly")}</option>
             </select>
           </div>
 
@@ -244,15 +245,15 @@ const Transactions = () => {
               onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
               className="input-field"
             >
-              <option value="all">All Categories</option>
-              <optgroup label="Income">
+              <option value="all">{t("transactions.allCategories")}</option>
+              <optgroup label={t("settings.income")}>
                 {INCOME_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                  <option key={cat.id} value={cat.id}>{cat.icon} {t(`income.categories.${cat.id}`)}</option>
                 ))}
               </optgroup>
-              <optgroup label="Expense">
+              <optgroup label={t("settings.expense")}>
                 {EXPENSE_CATEGORIES.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                  <option key={cat.id} value={cat.id}>{cat.icon} {t(`expense.categories.${cat.id}`)}</option>
                 ))}
               </optgroup>
             </select>
@@ -264,23 +265,23 @@ const Transactions = () => {
               onChange={(e) => setSortBy(e.target.value)}
               className="input-field"
             >
-              <option value="date-desc">Latest First</option>
-              <option value="date-asc">Oldest First</option>
-              <option value="amount-desc">Highest Amount</option>
-              <option value="amount-asc">Lowest Amount</option>
-              <option value="category">Category</option>
+              <option value="date-desc">{t("transactions.latestFirst")}</option>
+              <option value="date-asc">{t("transactions.oldestFirst")}</option>
+              <option value="amount-desc">{t("transactions.highestAmount")}</option>
+              <option value="amount-asc">{t("transactions.lowestAmount")}</option>
+              <option value="category">{t("transactions.byCategory")}</option>
             </select>
           </div>
 
           <button onClick={clearFilters} className="btn-secondary">
-            Clear Filters
+            {t("transactions.clearFilters")}
           </button>
         </div>
 
         {/* Date Range */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>
-            <label className="label">Start Date</label>
+            <label className="label">{t("reports.startDate")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -292,7 +293,7 @@ const Transactions = () => {
             </div>
           </div>
           <div>
-            <label className="label">End Date</label>
+            <label className="label">{t("reports.endDate")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -324,17 +325,17 @@ const Transactions = () => {
             </table>
           ) : paginatedTransactions.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">No transactions found</p>
+              <p className="text-gray-500 dark:text-gray-400">{t("transactions.noTransactions")}</p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Date</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Category</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Description</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Amount</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("transactions.date")}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("transactions.type")}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("transactions.category")}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("transactions.description")}</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("transactions.amount")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -356,20 +357,24 @@ const Transactions = () => {
                           : 'bg-expense-light dark:bg-expense-dark/20 text-expense-dark dark:text-expense-light'
                       }`}>
                         {transaction.type === 'income' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                        {transaction.type}
+                        {t(`settings.${transaction.type}`)}
                       </span>
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300">
                         <span>{getCategoryIcon(transaction.type, transaction.category)}</span>
-                        {transaction.category}
+                        {
+                          transaction.type === 'income' ?
+                          t(`income.categories.${transaction.category}`) :
+                          t(`expense.categories.${transaction.category}`)
+                        }
                       </span>
                     </td>
                     <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                       {transaction.description || '-'}
                       {transaction.isRecurring && (
                         <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">
-                          Recurring
+                          {t("reports.recurring")}
                         </span>
                       )}
                       {transaction.receipt && (
@@ -403,7 +408,7 @@ const Transactions = () => {
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                Previous
+                {t("transactions.Previous")}
               </button>
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -432,7 +437,7 @@ const Transactions = () => {
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                Next
+                {t("transactions.Next")}
               </button>
             </div>
           </div>

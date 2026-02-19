@@ -194,12 +194,19 @@
     "topExpenses": "ចំណាយ 5 ធំបំផុត",
     "noExpenses": "គ្មានចំណាយក្នុងរយៈពេលនេះ",
     "exportReport": "នាំចេញរបាយការណ៍",
-    "downloadAs": "ទាញយកជា {format}",
+    "downloadAs": "ទាញយកជា",
     "transactionSummary": "សង្ខេបប្រតិបត្តិការ",
     "totalTransactions": "ប្រតិបត្តិការសរុប",
     "incomeEntries": "ធាតុចំណូល",
     "expenseEntries": "ធាតុចំណាយ",
-    "avgTransaction": "ប្រតិបត្តិការជាមធ្យម"
+    "avgTransaction": "ប្រតិបត្តិការជាមធ្យម",
+    "loading": "កំពុងផ្ទុក...",
+    "refresh": "ធ្វើឱ្យទាន់សម័យ",
+    "entries": "ធាតុ",
+    "insights": "ការវិភាគ",
+    "noDataForThisPeriod": "គ្មានទិន្នន័យសម្រាប់រយៈពេលនេះ",
+    "noExpenseData": "គ្មានទិន្នន័យចំណាយ",
+    "recurring" : "កើតឡើងជាប្រចាំ"
   },
   "transactions": {
     "title": "ប្រតិបត្តិការទាំងអស់",
@@ -263,7 +270,7 @@
     "monthlyBudgetLimitHelp": "កំណត់ដែនកំណត់ចំណាយប្រចាំខែដើម្បីជួយតាមដានថវិការបស់អ្នក",
     "securitySettings": "ការកំណត់សុវត្ថិភាព",
     "password": "ពាក្យសម្ងាត់",
-    "passwordLastChanged": "ប្តូរចុងក្រោយ {days} ថ្ងៃមុន",
+    "passwordLastChanged": "ប្តូរចុងក្រោយ 30 ថ្ងៃមុន",
     "changePassword": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
     "twoFactorAuth": "ការផ្ទៀងផ្ទាត់ពីរកត្តា",
     "twoFactorAuthDesc": "បន្ថែមស្រទាប់សុវត្ថិភាពបន្ថែម",
@@ -285,7 +292,11 @@
       "បោះបង់ប្រតិបត្តិការដែលធ្វើម្តងហើយម្តងទៀត",
       "លុបទិន្នន័យគណនីរបស់អ្នកជាអចិន្ត្រៃយ៍"
     ],
-    "yesDelete": "បាទ/ចាស លុបគណនីរបស់ខ្ញុំ"
+    "yesDelete": "បាទ/ចាស លុបគណនីរបស់ខ្ញុំ",
+    "enterMonthlyBudget": "បញ្ចូលថវិកាប្រចាំខែ",
+    "enterCurrentPassword": "បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន",
+    "enterNewPassword": "បញ្ចូលពាក្យសម្ងាត់ថ្មី",
+    "enterConfirmPassword": "បញ្ចូលការបញ្ជាក់ពាក្យសម្ងាត់"
   },
   "settings": {
     "title": "ការកំណត់",
@@ -293,8 +304,8 @@
     "general": "ទូទៅ",
     "appearance": "រូបរាង",
     "notifications": "ការជូនដំណឹង",
-    "dataManagement": "ការគ្រប់គ្រងទិន្នន័យ",
-    "securityPrivacy": "សុវត្ថិភាព និងឯកជនភាព",
+    "data": "ការគ្រប់គ្រងទិន្នន័យ",
+    "security": "សុវត្ថិភាព និងឯកជនភាព",
     "generalSettings": "ការកំណត់ទូទៅ",
     "defaultCurrency": "រូបិយប័ណ្ណលំនាំដើម",
     "currencyHelp": "នេះនឹងត្រូវប្រើសម្រាប់ការគណនា និងការបង្ហាញហិរញ្ញវត្ថុទាំងអស់",

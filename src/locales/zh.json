@@ -194,12 +194,19 @@
     "topExpenses": "前5大支出",
     "noExpenses": "此期间无支出",
     "exportReport": "导出报告",
-    "downloadAs": "下载为 {format}",
+    "downloadAs": "下载为",
     "transactionSummary": "交易摘要",
     "totalTransactions": "总交易数",
     "incomeEntries": "收入条目",
     "expenseEntries": "支出条目",
-    "avgTransaction": "平均交易"
+    "avgTransaction": "平均交易",
+    "loading": "加载中...",
+    "refresh": "刷新",
+    "entries": "条目",
+    "insights": "洞察",
+    "noDataForThisPeriod": "此期间没有数据",
+    "noExpenseData": "没有支出数据",
+    "recurring" : "定期的"
   },
   "transactions": {
     "title": "所有交易",
@@ -263,7 +270,7 @@
     "monthlyBudgetLimitHelp": "设置月度支出限额以帮助跟踪您的预算",
     "securitySettings": "安全设置",
     "password": "密码",
-    "passwordLastChanged": "{days} 天前最后更改",
+    "passwordLastChanged": "天前最后更改",
     "changePassword": "更改密码",
     "twoFactorAuth": "双因素认证",
     "twoFactorAuthDesc": "添加额外的安全层",
@@ -285,7 +292,11 @@
       "取消所有定期交易",
       "永久删除您的账户数据"
     ],
-    "yesDelete": "是的，删除我的账户"
+    "yesDelete": "是的，删除我的账户",
+    "enterMonthlyBudget": "输入每月预算",
+    "enterCurrentPassword": "输入当前密码",
+    "enterNewPassword": "输入新密码",
+    "enterConfirmPassword": "输入确认密码"
   },
   "settings": {
     "title": "设置",
@@ -293,8 +304,8 @@
     "general": "常规",
     "appearance": "外观",
     "notifications": "通知",
-    "dataManagement": "数据管理",
-    "securityPrivacy": "安全与隐私",
+    "data": "数据管理",
+    "security": "安全与隐私",
     "generalSettings": "常规设置",
     "defaultCurrency": "默认货币",
     "currencyHelp": "将用于所有财务计算和显示",

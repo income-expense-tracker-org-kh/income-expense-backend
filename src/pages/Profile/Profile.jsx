@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { CURRENCIES, LANGUAGES, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
+import useTranslation from '../../hooks/useTranslation';
 
 // ─── Skeleton Components ──────────────────────────────────────────────────────
 const Skeleton = ({ className = '' }) => (
@@ -123,8 +124,8 @@ const Profile = () => {
   const { user, logout } = useAuthStore();
   const { currency, setCurrency, language, setLanguage, theme, setTheme, notifications, updateNotifications } = useSettingsStore();
   const navigate = useNavigate();
-
-  const [activeTab, setActiveTab] = useState('profile');
+  const { t } = useTranslation(language);
+  const [activeTab, setActiveTab] = useState('profileInfo');
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -162,7 +163,6 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState(user?.avatar || null);
 
   const handleProfileChange = (e) => {
-    console.log("eeee", e)
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
@@ -218,7 +218,6 @@ const Profile = () => {
       defaultExpenseCategory: financialPrefs.defaultExpenseCategory,
       monthlyBudgetLimit: financialPrefs.monthlyBudgetLimit,
     };
-    console.log("updateUser", updateUser)
 
     try {
       if (isEditing) {
@@ -263,36 +262,41 @@ const Profile = () => {
   };
 
   const tabs = [
-    { id: 'profile', label: 'Profile Info', icon: User },
-    { id: 'settings', label: 'Account Settings', icon: Globe },
-    { id: 'financial', label: 'Financial Preferences', icon: DollarSign },
+    { id: 'profileInfo', label: 'Profile Info', icon: User },
+    { id: 'accountSettings', label: 'Account Settings', icon: Globe },
+    { id: 'financialPreferences', label: 'Financial Preferences', icon: DollarSign },
     { id: 'security', label: 'Security', icon: Shield },
   ];
+  const placeholders = {
+    currentPassword: t('profile.enterCurrentPassword'),
+    newPassword: t('profile.enterNewPassword'),
+    confirmPassword: t('profile.enterConfirmPassword'),
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Profile & Settings</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your account and preferences</p>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("profile.title")}</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">{t("profile.subtitle")}</p>
         </div>
         {!loading && (
           <div className="flex gap-2">
             {!isEditing ? (
               <button onClick={() => setIsEditing(true)} className="btn-primary flex items-center gap-2">
                 <Edit2 size={18} />
-                Edit Profile
+                {t("profile.editProfile")}
               </button>
             ) : (
               <>
                 <button onClick={() => setIsEditing(false)} className="btn-secondary flex items-center gap-2">
                   <X size={18} />
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button onClick={handleSaveProfile} className="btn-success flex items-center gap-2">
                   <Save size={18} />
-                  Save Changes
+                  {t("profile.saveChanges")}
                 </button>
               </>
             )}
@@ -331,7 +335,7 @@ const Profile = () => {
               <div className="flex flex-wrap gap-4 mt-4 justify-center md:justify-start">
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Calendar size={16} />
-                  <span>Joined {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'January 2024'}</span>
+                  <span>Joined {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'January 2026'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Globe size={16} />
@@ -363,7 +367,7 @@ const Profile = () => {
                   }`}
               >
                 <Icon size={18} />
-                {tab.label}
+                {t(`profile.${tab.id}`)}
               </button>
             );
           })}
@@ -374,21 +378,21 @@ const Profile = () => {
       <div>
         {loading ? (
           <>
-            {activeTab === 'profile' && <ProfileFormSkeleton />}
-            {activeTab === 'settings' && <SettingsSkeleton />}
-            {activeTab === 'financial' && <FinancialPrefsSkeleton />}
+            {activeTab === 'profileInfo' && <ProfileFormSkeleton />}
+            {activeTab === 'accountSettings' && <SettingsSkeleton />}
+            {activeTab === 'financialPreferences' && <FinancialPrefsSkeleton />}
             {activeTab === 'security' && <SecuritySkeleton />}
           </>
         ) : (
           <>
             {/* Profile Information */}
-            {activeTab === 'profile' && (
+            {activeTab === 'profileInfo' && (
               <div className="card">
-                <h3 className="text-lg font-semibold mb-6">Profile Information</h3>
+                <h3 className="text-lg font-semibold mb-6">{t("profile.profileInfo")}</h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="label">Full Name</label>
+                      <label className="label">{t("profile.fullName")}</label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
@@ -403,7 +407,7 @@ const Profile = () => {
                     </div>
 
                     <div>
-                      <label className="label">Username</label>
+                      <label className="label">{t("profile.username")}</label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
@@ -418,7 +422,7 @@ const Profile = () => {
                     </div>
 
                     <div>
-                      <label className="label">Email Address</label>
+                      <label className="label">{t("profile.email")}</label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
@@ -433,7 +437,7 @@ const Profile = () => {
                     </div>
 
                     <div>
-                      <label className="label">Phone Number</label>
+                      <label className="label">{t("profile.phone")}</label>
                       <input
                         type="tel"
                         name="phone"
@@ -447,7 +451,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="label">Bio</label>
+                    <label className="label">{t("profile.bio")}</label>
                     <textarea
                       name="bio"
                       value={profileData.bio}
@@ -455,7 +459,7 @@ const Profile = () => {
                       disabled={!isEditing}
                       className="input-field"
                       rows="4"
-                      placeholder="Tell us about yourself..."
+                      placeholder={t("profile.bioPlaceholder")}
                     />
                   </div>
                 </div>
@@ -463,12 +467,12 @@ const Profile = () => {
             )}
 
             {/* Account Settings */}
-            {activeTab === 'settings' && (
+            {activeTab === 'accountSettings' && (
               <div className="card">
-                <h3 className="text-lg font-semibold mb-6">Account Settings</h3>
+                <h3 className="text-lg font-semibold mb-6">{t("profile.accountSettings")}</h3>
                 <div className="space-y-6">
                   <div>
-                    <label className="label">Preferred Currency</label>
+                    <label className="label">{t("profile.preferredCurrency")}</label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                       <select
@@ -486,7 +490,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="label">Language</label>
+                    <label className="label">{t("profile.language")}</label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                       <select
@@ -504,7 +508,7 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <label className="label">Theme</label>
+                    <label className="label">{t("profile.theme")}</label>
                     <div className="flex gap-4">
                       <button
                         onClick={() => setTheme('light')}
@@ -515,7 +519,7 @@ const Profile = () => {
                       >
                         <div className="text-center">
                           <div className="text-2xl mb-2">☀️</div>
-                          <div className="font-medium">Light Mode</div>
+                          <div className="font-medium">{t("settings.lightMode")}</div>
                         </div>
                       </button>
                       <button
@@ -527,27 +531,27 @@ const Profile = () => {
                       >
                         <div className="text-center">
                           <div className="text-2xl mb-2">🌙</div>
-                          <div className="font-medium">Dark Mode</div>
+                          <div className="font-medium">{t("settings.darkMode")}</div>
                         </div>
                       </button>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-4">Notification Preferences</h4>
+                    <h4 className="font-semibold mb-4">{t("profile.notificationPreferences")}</h4>
                     <div className="space-y-3">
                       {[
-                        { key: 'budgetAlerts', label: 'Budget Alerts', desc: 'Get notified when approaching budget limits' },
-                        { key: 'monthlyReport', label: 'Monthly Reports', desc: 'Receive monthly financial summary' },
-                        { key: 'billReminders', label: 'Bill Reminders', desc: 'Reminders for recurring payments' },
-                        { key: 'unusualSpending', label: 'Unusual Spending Alerts', desc: 'Detect unusual spending patterns' },
-                      ].map(({ key, label, desc }) => (
+                        { key: 'budgetAlerts', label: 'Budget Alerts', desc: 'budgetAlertsDesc' },
+                        { key: 'monthlyReports', label: 'Monthly Reports', desc: 'monthlyReportsDesc' },
+                        { key: 'billReminders', label: 'Bill Reminders', desc: 'billRemindersDesc' },
+                        { key: 'unusualSpending', label: 'Unusual Spending Alerts', desc: 'unusualSpendingDesc' },
+                      ].map(({ key, desc }) => (
                         <div key={key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                           <div className="flex items-center gap-3">
                             <Bell size={20} className="text-gray-600 dark:text-gray-400" />
                             <div>
-                              <p className="font-medium text-gray-800 dark:text-gray-200">{label}</p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{desc}</p>
+                              <p className="font-medium text-gray-800 dark:text-gray-200">{t(`profile.${key}`)}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{t(`profile.${desc}`)}</p>
                             </div>
                           </div>
                           <input
@@ -565,12 +569,12 @@ const Profile = () => {
             )}
 
             {/* Financial Preferences */}
-            {activeTab === 'financial' && (
+            {activeTab === 'financialPreferences' && (
               <div className="card">
-                <h3 className="text-lg font-semibold mb-6">Financial Preferences</h3>
+                <h3 className="text-lg font-semibold mb-6">{t("profile.financialPreferences")}</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="label">Default Income Category</label>
+                    <label className="label">{t("profile.defaultIncomeCategory")}</label>
                     <select
                       name="defaultIncomeCategory"
                       value={financialPrefs.defaultIncomeCategory}
@@ -580,14 +584,14 @@ const Profile = () => {
                     >
                       {INCOME_CATEGORIES.map((cat) => (
                         <option key={cat.id} value={cat.id}>
-                          {cat.icon} {cat.name}
+                          {cat.icon} {t(`income.categories.${cat.id}`)}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="label">Default Expense Category</label>
+                    <label className="label">{t("profile.defaultExpenseCategory")}</label>
                     <select
                       name="defaultExpenseCategory"
                       value={financialPrefs.defaultExpenseCategory}
@@ -597,14 +601,14 @@ const Profile = () => {
                     >
                       {EXPENSE_CATEGORIES.map((cat) => (
                         <option key={cat.id} value={cat.id}>
-                          {cat.icon} {cat.name}
+                          {cat.icon} {t(`expense.categories.${cat.id}`)}
                         </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
-                    <label className="label">Monthly Budget Limit</label>
+                    <label className="label">{t("profile.monthlyBudgetLimit")}</label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                       <input
@@ -614,12 +618,12 @@ const Profile = () => {
                         onChange={handleFinancialPrefChange}
                         disabled={!isEditing}
                         className="input-field pl-10"
-                        placeholder="Enter monthly budget"
+                        placeholder={t("profile.enterMonthlyBudget")}
                         step="0.01"
                       />
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Set a monthly spending limit to help track your budget
+                      {t("profile.monthlyBudgetLimitHelp")}
                     </p>
                   </div>
                 </div>
@@ -630,18 +634,18 @@ const Profile = () => {
             {activeTab === 'security' && (
               <div className="space-y-6">
                 <div className="card">
-                  <h3 className="text-lg font-semibold mb-6">Security Settings</h3>
+                  <h3 className="text-lg font-semibold mb-6">{t("profile.securitySettings")}</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center gap-3">
                         <Lock size={24} className="text-gray-600 dark:text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-800 dark:text-gray-200">Password</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Last changed 30 days ago</p>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{t("profile.password")}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t("profile.passwordLastChanged")}</p>
                         </div>
                       </div>
                       <button onClick={() => setShowPasswordModal(true)} className="btn-primary">
-                        Change Password
+                        {t("profile.changePassword")}
                       </button>
                     </div>
 
@@ -649,30 +653,30 @@ const Profile = () => {
                       <div className="flex items-center gap-3">
                         <Shield size={24} className="text-gray-600 dark:text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-800 dark:text-gray-200">Two-Factor Authentication</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security</p>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{t("profile.twoFactorAuth")}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t("profile.twoFactorAuthDesc")}</p>
                         </div>
                       </div>
                       <button className="btn-secondary">
-                        Enable 2FA
+                        {t("profile.enable2FA")}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 <div className="card">
-                  <h3 className="text-lg font-semibold mb-6 text-red-600 dark:text-red-400">Danger Zone</h3>
+                  <h3 className="text-lg font-semibold mb-6 text-red-600 dark:text-red-400">{t("profile.dangerZone")}</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 border-2 border-red-200 dark:border-red-900 rounded-lg">
                       <div className="flex items-center gap-3">
                         <LogOut size={24} className="text-gray-600 dark:text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-800 dark:text-gray-200">Logout</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Sign out of your account</p>
+                          <p className="font-medium text-gray-800 dark:text-gray-200">{t("profile.logout")}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t("profile.logoutDesc")}</p>
                         </div>
                       </div>
                       <button onClick={handleLogout} className="btn-secondary">
-                        Logout
+                        {t("profile.logout")}
                       </button>
                     </div>
 
@@ -680,12 +684,12 @@ const Profile = () => {
                       <div className="flex items-center gap-3">
                         <Trash2 size={24} className="text-red-600 dark:text-red-400" />
                         <div>
-                          <p className="font-medium text-red-600 dark:text-red-400">Delete Account</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Permanently delete your account and all data</p>
+                          <p className="font-medium text-red-600 dark:text-red-400">{t("profile.deleteAccount")}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{t("profile.deleteAccountDesc")}</p>
                         </div>
                       </div>
                       <button onClick={() => setShowDeleteModal(true)} className="btn-danger">
-                        Delete Account
+                        {t("profile.deleteAccount")}
                       </button>
                     </div>
                   </div>
@@ -701,7 +705,7 @@ const Profile = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">Change Password</h3>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">{t("profile.changePassword")}</h3>
               <button
                 onClick={() => setShowPasswordModal(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -714,7 +718,11 @@ const Profile = () => {
               {['currentPassword', 'newPassword', 'confirmPassword'].map((field, idx) => (
                 <div key={field}>
                   <label className="label">
-                    {field === 'currentPassword' ? 'Current Password' : field === 'newPassword' ? 'New Password' : 'Confirm New Password'}
+                    {field === 'currentPassword'
+                      ? t('profile.currentPassword')
+                      : field === 'newPassword'
+                        ? t('profile.newPassword')
+                        : t('profile.confirmPassword')}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -724,7 +732,7 @@ const Profile = () => {
                       value={passwordData[field]}
                       onChange={handlePasswordChange}
                       className="input-field pl-10 pr-10"
-                      placeholder={`Enter ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+                      placeholder={placeholders[field] || ''}
                     />
                     <button
                       type="button"
@@ -742,10 +750,10 @@ const Profile = () => {
 
               <div className="flex gap-3 pt-4">
                 <button onClick={() => setShowPasswordModal(false)} className="flex-1 btn-secondary">
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button onClick={handleChangePassword} className="flex-1 btn-primary">
-                  Change Password
+                  {t("profile.changePassword")}
                 </button>
               </div>
             </div>
@@ -758,7 +766,7 @@ const Profile = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-red-600 dark:text-red-400">Delete Account</h3>
+              <h3 className="text-xl font-bold text-red-600 dark:text-red-400">{t("profile.deleteAccount")}</h3>
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -769,28 +777,34 @@ const Profile = () => {
 
             <div className="space-y-4">
               <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg">
-                <p className="text-red-800 dark:text-red-300 font-medium">Warning: This action cannot be undone!</p>
+                <p className="text-red-800 dark:text-red-300 font-medium">{t("profile.deleteAccountWarning")}</p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                  All your data including transactions, budgets, and reports will be permanently deleted.
+                  {t("profile.deleteAccountConfirm")}
                 </p>
               </div>
 
               <p className="text-gray-600 dark:text-gray-400">
-                Are you absolutely sure you want to delete your account? This will:
+                {t("profile.deleteAccountQuestion")}
               </p>
               <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                {t('profile.deleteAccountList', { returnObjects: true }).map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+
+              {/* <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
                 <li>Delete all your financial records</li>
                 <li>Remove all budgets and settings</li>
                 <li>Cancel any recurring transactions</li>
                 <li>Permanently erase your account data</li>
-              </ul>
+              </ul> */}
 
               <div className="flex gap-3 pt-4">
                 <button onClick={() => setShowDeleteModal(false)} className="flex-1 btn-secondary">
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button onClick={handleDeleteAccount} className="flex-1 btn-danger">
-                  Yes, Delete My Account
+                  {t("profile.yesDelete")}
                 </button>
               </div>
             </div>
