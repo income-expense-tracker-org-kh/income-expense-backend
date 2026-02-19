@@ -1,37 +1,54 @@
 // Income Categories
 export const INCOME_CATEGORIES = [
   { id: 'salary', name: 'Salary', icon: '💼' },
+  { id: 'bonus', name: 'Bonus', icon: '🎉' },
   { id: 'business', name: 'Business', icon: '🏢' },
   { id: 'freelance', name: 'Freelance', icon: '💻' },
   { id: 'investment', name: 'Investment', icon: '📈' },
-  { id: 'gift', name: 'Gift', icon: '🎁' },
+  { id: 'interest', name: 'Interest', icon: '🏦' },
+  { id: 'commission', name: 'Commission', icon: '🤝' },
   { id: 'rental', name: 'Rental Income', icon: '🏠' },
-  { id: 'other', name: 'Other', icon: '💰' },
+  { id: 'gift', name: 'Gift', icon: '🎁' },
+  { id: 'refund', name: 'Refund', icon: '🔄' },
+  { id: 'other', name: 'Other', icon: '💰' }
 ];
 
 // Expense Categories
 export const EXPENSE_CATEGORIES = [
   { id: 'food', name: 'Food & Dining', icon: '🍔' },
+  { id: 'groceries', name: 'Groceries', icon: '🛒' },
   { id: 'rent', name: 'Rent', icon: '🏠' },
+  { id: 'mortgage', name: 'Mortgage', icon: '🏡' },
   { id: 'utilities', name: 'Utilities', icon: '💡' },
   { id: 'transport', name: 'Transportation', icon: '🚗' },
+  { id: 'fuel', name: 'Fuel', icon: '⛽' },
   { id: 'shopping', name: 'Shopping', icon: '🛍️' },
   { id: 'entertainment', name: 'Entertainment', icon: '🎬' },
   { id: 'healthcare', name: 'Healthcare', icon: '⚕️' },
   { id: 'education', name: 'Education', icon: '📚' },
-  { id: 'subscription', name: 'Subscriptions', icon: '📱' },
   { id: 'insurance', name: 'Insurance', icon: '🛡️' },
-  { id: 'bills', name: 'Bills', icon: '💳' },
-  { id: 'other', name: 'Other', icon: '💸' },
+  { id: 'loan', name: 'Loan Payment', icon: '💳' },
+  { id: 'subscription', name: 'Subscription', icon: '📱' },
+  { id: 'travel', name: 'Travel', icon: '✈️' },
+  { id: 'family', name: 'Family Support', icon: '👨‍👩‍👧‍👦' },
+  { id: 'tax', name: 'Tax', icon: '📄' },
+  { id: 'charity', name: 'Charity', icon: '❤️' },
+  { id: 'other', name: 'Other', icon: '💸' }
 ];
+
 
 // Payment Methods
 export const PAYMENT_METHODS = [
   { id: 'cash', name: 'Cash', icon: '💵' },
   { id: 'credit_card', name: 'Credit Card', icon: '💳' },
-  { id: 'upi', name: 'UPI', icon: '📲' },
+  { id: 'debit_card', name: 'Debit Card', icon: '💳' },
   { id: 'bank_transfer', name: 'Bank Transfer', icon: '🏦' },
+  { id: 'mobile_payment', name: 'Mobile Payment', icon: '📲' },
+  { id: 'qr_code', name: 'QR Code', icon: '🔳' },
   { id: 'wallet', name: 'Digital Wallet', icon: '👛' },
+  { id: 'cheque', name: 'Cheque', icon: '🧾' },
+  { id: 'crypto', name: 'Cryptocurrency', icon: '🪙' },
+  { id: 'other', name: 'Other', icon: '❓' }
 ];
 
 export const getPaymentMethodLabel = (method) => {

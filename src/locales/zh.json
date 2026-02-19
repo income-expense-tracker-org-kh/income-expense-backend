@@ -74,11 +74,15 @@
     "addNote":"添加笔记...",
     "categories": {
       "salary": "工资",
-      "business": "商业",
+      "bonus": "奖金",
+      "business": "商业收入",
       "freelance": "自由职业",
       "investment": "投资",
-      "gift": "礼物",
+      "interest": "利息",
+      "commission": "佣金",
       "rental": "租金收入",
+      "gift": "礼物",
+      "refund": "退款",
       "other": "其他"
     }
   },
@@ -106,24 +110,36 @@
     "clicktoUpload": "点击上传",
     "categories": {
       "food": "餐饮",
-      "rent": "租金",
+      "groceries": "杂货",
+      "rent": "房租",
+      "mortgage": "房贷",
       "utilities": "水电费",
       "transport": "交通",
+      "fuel": "燃料",
       "shopping": "购物",
       "entertainment": "娱乐",
-      "healthcare": "医疗保健",
+      "healthcare": "医疗",
       "education": "教育",
-      "subscription": "订阅",
       "insurance": "保险",
-      "bills": "账单",
+      "loan": "贷款偿还",
+      "subscription": "订阅",
+      "travel": "旅行",
+      "family": "家庭支持",
+      "tax": "税",
+      "charity": "慈善",
       "other": "其他"
     },
     "paymentMethods": {
       "cash": "现金",
-      "card": "信用卡/借记卡",
-      "upi": "UPI",
+      "credit_card": "信用卡",
+      "debit_card": "借记卡",
       "bank_transfer": "银行转账",
-      "wallet": "数字钱包"
+      "mobile_payment": "移动支付",
+      "qr_code": "二维码支付",
+      "wallet": "电子钱包",
+      "cheque": "支票",
+      "crypto": "加密货币",
+      "other": "其他"
     }
   },
   "budget": {

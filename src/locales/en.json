@@ -74,11 +74,15 @@
     "addNote":"Add a note...",
     "categories": {
       "salary": "Salary",
+      "bonus": "Bonus",
       "business": "Business",
       "freelance": "Freelance",
       "investment": "Investment",
-      "gift": "Gift",
+      "interest": "Interest",
+      "commission": "Commission",
       "rental": "Rental Income",
+      "gift": "Gift",
+      "refund": "Refund",
       "other": "Other"
     }
   },
@@ -106,24 +110,36 @@
     "receipt": "Receipt",
     "categories": {
       "food": "Food & Dining",
+      "groceries": "Groceries",
       "rent": "Rent",
+      "mortgage": "Mortgage",
       "utilities": "Utilities",
       "transport": "Transportation",
+      "fuel": "Fuel",
       "shopping": "Shopping",
       "entertainment": "Entertainment",
       "healthcare": "Healthcare",
       "education": "Education",
-      "subscription": "Subscriptions",
       "insurance": "Insurance",
-      "bills": "Bills",
+      "loan": "Loan Payment",
+      "subscription": "Subscription",
+      "travel": "Travel",
+      "family": "Family Support",
+      "tax": "Tax",
+      "charity": "Charity",
       "other": "Other"
     },
     "paymentMethods": {
       "cash": "Cash",
-      "card": "Credit/Debit Card",
-      "upi": "UPI",
+      "credit_card": "Credit Card",
+      "debit_card": "Debit Card",
       "bank_transfer": "Bank Transfer",
-      "wallet": "Digital Wallet"
+      "mobile_payment": "Mobile Payment",
+      "qr_code": "QR Code",
+      "wallet": "Digital Wallet",
+      "cheque": "Cheque",
+      "crypto": "Cryptocurrency",
+      "other": "Other"
     }
   },
   "budget": {
