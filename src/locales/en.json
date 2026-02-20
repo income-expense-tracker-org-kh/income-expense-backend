@@ -222,7 +222,8 @@
     "insights": "Insights",
     "noDataForThisPeriod": "No data for this period",
     "noExpenseData": "No expense data",
-    "recurring" : "Recurring"
+    "recurring" : "Recurring",
+    "dataRefreshed" : "Data Refreshed"
   },
   "transactions": {
     "title": "All Transactions",

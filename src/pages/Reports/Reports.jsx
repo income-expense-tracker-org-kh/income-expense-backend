@@ -11,7 +11,7 @@ import { CHART_COLORS, EXPORT_TYPES } from '../../constants';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
 
-// ─── Skeleton loader components ───────────────────────────────────────────────
+// ======= Skeleton loader components =======
 const Skeleton = ({ className = '' }) => (
   <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
 );
@@ -39,7 +39,7 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// ─── Main component ────────────────────────────────────────────────────────────
+// ===== Main component ======
 const Reports = () => {
   const { currency, language } = useSettingsStore();
   const { t } = useTranslation(language);
@@ -49,7 +49,7 @@ const Reports = () => {
   });
   const [reportType, setReportType] = useState('overview');
 
-  // ── Loading state (one boolean per fetch, matching codebase pattern) ────────
+  // ==== Loading state (one boolean per fetch, matching codebase pattern) ====
   const [loadingFinancialSummary, setLoadingFinancialSummary] = useState(false);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [loadingExpenseSummary, setLoadingExpenseSummary] = useState(false);
@@ -57,7 +57,7 @@ const Reports = () => {
   const [loadingAllExpenses, setLoadingAllExpenses] = useState(false);
   const [loadingAllIncome, setLoadingAllIncome] = useState(false);
 
-  // ── Data state ─────────────────────────────────────────────────────────────
+  // ===== Data state =====
   const [financialSummary, setFinancialSummary] = useState(null);
   const [insights, setInsights] = useState(null);
   const [expenseSummary, setExpenseSummary] = useState(null);
@@ -65,7 +65,7 @@ const Reports = () => {
   const [allExpenses, setAllExpenses] = useState([]);
   const [allIncome, setAllIncome] = useState([]);
 
-  // ── Fetch functions (all follow the same pattern) ─────────────────────────
+  // ===== Fetch functions (all follow the same pattern) =====
 
   const fetchFinancialSummary = useCallback(async () => {
     try {
@@ -143,7 +143,7 @@ const Reports = () => {
     }
   }, [dateRange]);
 
-  // ── Effects ────────────────────────────────────────────────────────────────
+  // ==== Effects ====
   useEffect(() => {
     fetchFinancialSummary();
   }, [fetchFinancialSummary]);
@@ -164,7 +164,7 @@ const Reports = () => {
     fetchAllIncome();
   }, [fetchAllIncome]);
 
-  // ── Refresh all ───────────────────────────────────────────────────────────
+  // ====== Refresh all ======
   const handleRefresh = () => {
     fetchFinancialSummary();
     fetchInsights();
@@ -172,10 +172,10 @@ const Reports = () => {
     fetchExpenseTrends();
     fetchAllExpenses();
     fetchAllIncome();
-    toast.success('Data refreshed');
+    toast.success(t("reports.dataRefreshed"));
   };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
+  // ======= Derived values ======
   const isAnythingLoading =
     loadingFinancialSummary ||
     loadingInsights ||
@@ -247,7 +247,7 @@ const Reports = () => {
     [...allExpenses].sort((a, b) => b.amount - a.amount).slice(0, 5),
   [allExpenses]);
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // ====== Export =====
   const handleExport = (type) => {
     const exportData = {
       totalIncome, totalExpense, balance,
@@ -264,13 +264,13 @@ const Reports = () => {
         case 'csv':   exportService.exportToCSV(allTransactions, `transactions-${Date.now()}.csv`); break;
         default: break;
       }
-      toast.success(`Report exported as ${type.toUpperCase()}`);
+      toast.success(t(`reports.exportReport ${type.toUpperCase()}`));
     } catch {
       toast.error('Failed to export report');
     }
   };
 
-  // ── Quick-range helpers ────────────────────────────────────────────────────
+  // ====== Quick-range helpers =====
   const setThisMonth = () => {
     const today = new Date();
     setDateRange({
@@ -293,7 +293,7 @@ const Reports = () => {
     });
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ====== Render =======
   return (
     <div className="space-y-6">
       {/* Header */}

@@ -130,6 +130,8 @@ const Profile = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Profile form state
   const [profileData, setProfileData] = useState({
@@ -200,15 +202,18 @@ const Profile = () => {
       const res = await authService.getAll();
       setProfileData(res?.data);
     } catch (error) {
-      toast.error('Failed to load profile');
+      if (error?.response?.status !== 401) {
+        toast.error('Failed to load profile');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!user) return;
     getDetailUserMe();
-  }, []);
+  }, [user]);
 
   const handleSaveProfile = async () => {
     const updateUser = {
@@ -231,7 +236,7 @@ const Profile = () => {
     }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
       toast.error(t('notifications.error.fillAllPasswordFields'));
       return;
@@ -244,9 +249,32 @@ const Profile = () => {
       toast.error(t('notifications.error.passwordMinLength'));
       return;
     }
-    toast.success(t('notifications.success.passwordChanged'));
-    setShowPasswordModal(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    const paramPassword = {
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword,
+    };
+
+    try {
+      await authService.updatePassword(paramPassword);
+
+      // ✅ SUCCESS — close modal, logout, redirect
+      toast.success(t('notifications.success.passwordChanged'));
+      setShowPasswordModal(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      logout();
+      navigate('/login');
+
+    } catch (error) {
+      // ✅ FAILED — show error toast, stay on current page (no navigate)
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Current password is incorrect';
+
+      toast.error(message);
+      // ❌ REMOVED: navigate("/profile") — was causing reload loop
+    }
   };
 
   const handleDeleteAccount = () => {
