@@ -6,8 +6,10 @@ import { EXPENSE_CATEGORIES, getPaymentMethodLabel, PAYMENT_METHODS } from '../.
 import toast from 'react-hot-toast';
 import { expenseService } from '../../services/expenseService';
 import useTranslation from '../../hooks/useTranslation';
+import ConfirmModal from '../../components/Common/ConfirmModal';
+import { useConfirm } from '../../hooks/useConfirm';
 
-// ─── Skeleton primitives ───────────────────────────────────────────────────────
+// ======= Skeleton primitives =======
 
 const Skeleton = ({ className = '' }) => (
   <div
@@ -116,11 +118,12 @@ const ExpenseSkeleton = () => (
   </>
 );
 
-// ─── Main Expense component ────────────────────────────────────────────────────
+// ======= Main Expense component =======
 
 const Expense = () => {
   const { currency, dateFormat, language } = useSettingsStore();
   const { t } = useTranslation(language);
+  const { confirm, confirmProps } = useConfirm(); // ← useConfirm hook
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -215,7 +218,7 @@ const Expense = () => {
     e.preventDefault();
 
     if (!formData.amount || !formData.category || !formData.date) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('notifications.error.fillRequired'));
       return;
     }
 
@@ -237,10 +240,10 @@ const Expense = () => {
     try {
       if (editingExpense) {
         await expenseService.update(editingExpense._id, expenseData);
-        toast.success('Expense updated successfully');
+        toast.success(t('notifications.success.expenseUpdated'));
       } else {
         await expenseService.create(expenseData);
-        toast.success('Expense added successfully');
+        toast.success(t('notifications.success.expenseAdded'));
       }
       fetchExpenses();
       setShowModal(false);
@@ -251,10 +254,17 @@ const Expense = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this expense?')) return;
+    const ok = await confirm({
+      title: t('notifications.confirm.deleteExpense'),
+      message: t('notifications.confirm.deleteExpenseWarning'),
+      confirmText: t('common.delete') || 'Delete',
+      cancelText: t('common.cancel') || 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await expenseService.delete(id);
-      toast.success('Deleted successfully');
+      toast.success(t('notifications.success.expenseDeleted'));
       fetchExpenses();
     } catch {
       toast.error('Delete failed');
@@ -281,7 +291,7 @@ const Expense = () => {
     return method?.icon || '💳';
   };
 
-  // ── Render skeleton while loading ────────────────────────────────────────
+  // ======== Render skeleton while loading ========
   if (loading) return <ExpenseSkeleton />;
 
   return (
@@ -294,7 +304,7 @@ const Expense = () => {
       `}</style>
 
       <div className="space-y-6">
-        {/* ── Header ───────────────────────────────────────────────────── */}
+        {/* ======== Header ======== */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("expense.title")}</h2>
@@ -306,7 +316,7 @@ const Expense = () => {
           </button>
         </div>
 
-        {/* ── Summary card ─────────────────────────────────────────────── */}
+        {/* ======== Summary card ======== */}
         <div className="card bg-gradient-to-br from-expense-light to-expense dark:from-expense-dark dark:to-expense">
           <div className="flex items-center justify-between">
             <div>
@@ -324,7 +334,7 @@ const Expense = () => {
           </div>
         </div>
 
-        {/* ── Filters ──────────────────────────────────────────────────── */}
+        {/* ======== Filters ======== */}
         <div className="card">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
@@ -355,7 +365,7 @@ const Expense = () => {
           </div>
         </div>
 
-        {/* ── Table ────────────────────────────────────────────────────── */}
+        {/* ======== Table ======== */}
         <div className="card">
           <h3 className="text-lg font-semibold mb-4">{t("expense.expenseRecord")}</h3>
 
@@ -623,6 +633,9 @@ const Expense = () => {
           </div>
         )}
       </div>
+
+      {/* ====== Global Confirm Modal ====== */}
+      <ConfirmModal {...confirmProps} />
     </>
   );
 };

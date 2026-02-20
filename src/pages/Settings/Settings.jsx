@@ -6,8 +6,10 @@ import { useBudgetStore } from '../../store/budgetStore';
 import { CURRENCIES, LANGUAGES, DATE_FORMATS } from '../../constants';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
+import ConfirmModal from '../../components/Common/ConfirmModal';
+import { useConfirm } from '../../hooks/useConfirm';
 
-// ─── Skeleton Primitives ───────────────────────────────────────────────────────
+// ======== Skeleton Primitives =======
 
 const Skeleton = ({ className = '' }) => (
   <div className={`animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 ${className}`} />
@@ -17,7 +19,7 @@ const SkeletonText = ({ width = 'w-full', height = 'h-4' }) => (
   <Skeleton className={`${width} ${height}`} />
 );
 
-// ─── Section Skeleton Variants ─────────────────────────────────────────────────
+// ======= Section Skeleton Variants ======
 
 const GeneralSkeleton = () => (
   <div className="card space-y-8">
@@ -138,7 +140,7 @@ const skeletonMap = {
   security: SecuritySkeleton,
 };
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// ======= Main Component =======
 
 const Settings = () => {
   const {
@@ -153,6 +155,7 @@ const Settings = () => {
   const { transactions, setTransactions } = useTransactionStore();
   const { budgets, setBudgets } = useBudgetStore();
   const { t } = useTranslation(language);
+  const { confirm, confirmProps } = useConfirm(); // ← useConfirm hook
   const [activeSection, setActiveSection] = useState('general');
   const [isLoading, setIsLoading] = useState(true);
   const [isSectionLoading, setIsSectionLoading] = useState(false);
@@ -194,7 +197,7 @@ const Settings = () => {
     link.download = `fintracker-backup-${Date.now()}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success('Data exported successfully');
+    toast.success(t('notifications.success.dataExported'));
   };
 
   const handleImportData = (e) => {
@@ -214,34 +217,47 @@ const Settings = () => {
             if (dateFormat) setDateFormat(dateFormat);
             if (notifications) updateNotifications(notifications);
           }
-          toast.success('Data imported successfully');
+          toast.success(t('notifications.success.dataImported'));
         } catch {
-          toast.error('Failed to import data. Invalid file format.');
+          toast.error(t('notifications.error.importFailed'));
         }
       };
       reader.readAsText(file);
     }
   };
 
-  const handleClearAllData = () => {
-    if (window.confirm('Are you sure you want to delete all your data? This cannot be undone!')) {
-      setTransactions([]);
-      setBudgets([]);
-      toast.success('All data cleared');
-    }
+  const handleClearAllData = async () => {
+    const ok = await confirm({
+      title: t('notifications.confirm.clearAllData'),
+      message: "",
+      confirmText: t('common.delete') || 'Delete',
+      cancelText: t('common.cancel') || 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    setTransactions([]);
+    setBudgets([]);
+    toast.success(t('notifications.success.dataClear'));
   };
 
-  const handleResetSettings = () => {
-    if (window.confirm('Reset all settings to default values?')) {
-      resetSettings();
-      toast.success('Settings reset to default');
-    }
+  const handleResetSettings = async () => {
+    const ok = await confirm({
+      title: t('notifications.confirm.resetSettings'),
+      message: "",
+      confirmText: t('common.delete') || 'Delete',
+      cancelText: t('common.cancel') || 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    resetSettings();
+    toast.success(t('notifications.success.settingsReset'));
   };
 
   const SectionSkeleton = skeletonMap[activeSection];
   const showSkeleton = isLoading || isSectionLoading;
 
   return (
+    <>
     <div className="space-y-6">
       {/* Header */}
       <div>
@@ -511,6 +527,9 @@ const Settings = () => {
         </>
       )}
     </div>
+    {/* ====== Global Confirm Modal ====== */ }
+    <ConfirmModal {...confirmProps} />
+    </>
   );
 };
 

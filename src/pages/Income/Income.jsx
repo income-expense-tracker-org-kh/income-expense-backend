@@ -6,8 +6,11 @@ import { INCOME_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
 import { incomeService } from '../../services/incomeService';
 import useTranslation from '../../hooks/useTranslation';
+import ConfirmModal from '../../components/Common/ConfirmModal';
+import { useConfirm } from '../../hooks/useConfirm';
+// import { useConfirm } from '../../hooks/useConfirm';
 
-// ─── Skeleton primitives ───────────────────────────────────────────────────────
+//======= Skeleton primitives =======
 
 const Skeleton = ({ className = '' }) => (
   <div
@@ -20,7 +23,6 @@ const Skeleton = ({ className = '' }) => (
   />
 );
 
-// Summary card skeleton
 const SummaryCardSkeleton = () => (
   <div className="card bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
     <div className="flex items-center justify-between">
@@ -34,7 +36,6 @@ const SummaryCardSkeleton = () => (
   </div>
 );
 
-// Filter bar skeleton
 const FilterBarSkeleton = () => (
   <div className="card">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -44,7 +45,6 @@ const FilterBarSkeleton = () => (
   </div>
 );
 
-// Table row skeleton
 const TableRowSkeleton = () => (
   <tr className="border-b border-gray-100 dark:border-gray-800">
     <td className="py-3 px-4"><Skeleton className="h-4 w-24" /></td>
@@ -60,7 +60,6 @@ const TableRowSkeleton = () => (
   </tr>
 );
 
-// Full page skeleton matching the Income layout
 const IncomeSkeleton = () => (
   <>
     <style>{`
@@ -71,7 +70,6 @@ const IncomeSkeleton = () => (
     `}</style>
 
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-2">
           <Skeleton className="h-7 w-52" />
@@ -79,14 +77,8 @@ const IncomeSkeleton = () => (
         </div>
         <Skeleton className="h-10 w-32 rounded-lg" />
       </div>
-
-      {/* Summary card */}
       <SummaryCardSkeleton />
-
-      {/* Filter bar */}
       <FilterBarSkeleton />
-
-      {/* Table card */}
       <div className="card">
         <Skeleton className="h-5 w-36 mb-4" />
         <div className="overflow-x-auto">
@@ -114,11 +106,12 @@ const IncomeSkeleton = () => (
   </>
 );
 
-// ─── Main Income component ─────────────────────────────────────────────────────
+// ======= Main Income component =======
 
 const Income = () => {
   const { currency, dateFormat, language } = useSettingsStore();
   const { t } = useTranslation(language);
+  const { confirm, confirmProps } = useConfirm(); // ← useConfirm hook
   const [showModal, setShowModal] = useState(false);
   const [editingIncome, setEditingIncome] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,7 +149,7 @@ const Income = () => {
       setLoading(true);
       const res = await incomeService.getAll();
       setIncomes(res?.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load incomes');
     } finally {
       setLoading(false);
@@ -196,7 +189,7 @@ const Income = () => {
     e.preventDefault();
 
     if (!formData.amount || !formData.category || !formData.date) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('notifications.error.fillRequired'));
       return;
     }
 
@@ -216,24 +209,33 @@ const Income = () => {
     try {
       if (editingIncome) {
         await incomeService.update(editingIncome._id, incomeData);
-        toast.success('Income updated successfully');
+        toast.success(t('notifications.success.incomeUpdated'));
       } else {
         await incomeService.create(incomeData);
-        toast.success('Income added successfully');
+        toast.success(t('notifications.success.incomeAdded'));
       }
       fetchIncomes();
       setShowModal(false);
       resetForm();
-    } catch (error) {
+    } catch {
       toast.error('Save failed');
     }
   };
 
+  // ← Replaced window.confirm with ConfirmModal
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this income?')) return;
+    const ok = await confirm({
+      title: t('notifications.confirm.deleteIncome'),
+      message: t('notifications.confirm.deleteIncomeWarning'),
+      confirmText: t('common.delete') || 'Delete',
+      cancelText: t('common.cancel') || 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       await incomeService.delete(id);
-      toast.success('Deleted successfully');
+      toast.success(t('notifications.success.incomeDeleted'));
       fetchIncomes();
     } catch {
       toast.error('Delete failed');
@@ -255,7 +257,6 @@ const Income = () => {
     return category?.icon || '💰';
   };
 
-  // ── Render skeleton while loading ────────────────────────────────────────
   if (loading) return <IncomeSkeleton />;
 
   return (
@@ -268,28 +269,28 @@ const Income = () => {
       `}</style>
 
       <div className="space-y-6">
-        {/* ── Header ───────────────────────────────────────────────────── */}
+        {/* ====== Header ====== */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("income.title")}</h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">{t("income.subtitle")}</p>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t('income.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">{t('income.subtitle')}</p>
           </div>
           <button onClick={handleAdd} className="btn-success flex items-center gap-2">
             <Plus size={20} />
-            {t("income.addIncome")}
+            {t('income.addIncome')}
           </button>
         </div>
 
-        {/* ── Summary card ─────────────────────────────────────────────── */}
+        {/* ====== Summary card ====== */}
         <div className="card bg-gradient-to-br from-income-light to-income dark:from-income-dark dark:to-income">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t("income.totalIncome")}</p>
+              <p className="text-sm text-green-800 dark:text-green-200 mb-1">{t('income.totalIncome')}</p>
               <h3 className="text-3xl font-bold text-green-900 dark:text-white">
                 {formatCurrency(totalIncome, currency)}
               </h3>
               <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                {filteredIncomes.length} {t("income.transactions")}{filteredIncomes.length !== 1 ? '' : ''}
+                {filteredIncomes.length} {t('income.transactions')}
               </p>
             </div>
             <div className="w-16 h-16 bg-white dark:bg-green-800 rounded-full flex items-center justify-center">
@@ -298,14 +299,14 @@ const Income = () => {
           </div>
         </div>
 
-        {/* ── Filters ──────────────────────────────────────────────────── */}
+        {/* ====== Filters ====== */}
         <div className="card">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder={t("common.search")}
+                placeholder={t('common.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="input-field pl-10"
@@ -318,7 +319,7 @@ const Income = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
                 className="input-field pl-10"
               >
-                <option value="all">{t("transactions.allCategories")}</option>
+                <option value="all">{t('transactions.allCategories')}</option>
                 {INCOME_CATEGORIES.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.icon} {t(`income.categories.${cat.id}`)}
@@ -329,16 +330,16 @@ const Income = () => {
           </div>
         </div>
 
-        {/* ── Table ────────────────────────────────────────────────────── */}
+        {/* ====== Table ====== */}
         <div className="card">
-          <h3 className="text-lg font-semibold mb-4">{t("income.incomeRecords")}</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('income.incomeRecords')}</h3>
 
           {filteredIncomes.length === 0 ? (
             <div className="text-center py-12">
               <DollarSign className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-500 dark:text-gray-400">{t("income.noRecords")}</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('income.noRecords')}</p>
               <button onClick={handleAdd} className="btn-primary mt-4">
-                {t("income.addFirst")}
+                {t('income.addFirst')}
               </button>
             </div>
           ) : (
@@ -346,11 +347,11 @@ const Income = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.date")}</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.category")}</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.description")}</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.amount")}</th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t("income.action")}</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t('income.date')}</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t('income.category')}</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t('income.description')}</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t('income.amount')}</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">{t('income.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -368,14 +369,14 @@ const Income = () => {
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-2 px-3 py-1 bg-income-light dark:bg-income-dark/20 text-income-dark dark:text-income-light rounded-full text-sm">
                           <span>{getCategoryIcon(income.category)}</span>
-                          {(t(`income.categories.${income.category}`))}
+                          {t(`income.categories.${income.category}`)}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                         {income.description || '-'}
                         {income.isRecurring && (
                           <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">
-                            {t("income.recurring")}
+                            {t('income.recurring')}
                           </span>
                         )}
                       </td>
@@ -408,13 +409,13 @@ const Income = () => {
           )}
         </div>
 
-        {/* ── Modal ────────────────────────────────────────────────────── */}
+        {/* ====== Add / Edit Modal ====== */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                  {editingIncome ? t("income.editIncome") : t("income.addIncome")}
+                  {editingIncome ? t('income.editIncome') : t('income.addIncome')}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
@@ -426,7 +427,7 @@ const Income = () => {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="label">{t("income.amount")} *</label>
+                  <label className="label">{t('income.amount')} *</label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
@@ -443,7 +444,7 @@ const Income = () => {
                 </div>
 
                 <div>
-                  <label className="label">{t("income.category")} *</label>
+                  <label className="label">{t('income.category')} *</label>
                   <select
                     name="category"
                     value={formData.category}
@@ -451,7 +452,7 @@ const Income = () => {
                     className="input-field"
                     required
                   >
-                    <option value="">{t("income.category")} </option>
+                    <option value="">{t('income.category')}</option>
                     {INCOME_CATEGORIES.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.icon} {t(`income.categories.${cat.id}`)}
@@ -461,7 +462,7 @@ const Income = () => {
                 </div>
 
                 <div>
-                  <label className="label">{t("income.date")}  *</label>
+                  <label className="label">{t('income.date')} *</label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                     <input
@@ -476,7 +477,7 @@ const Income = () => {
                 </div>
 
                 <div>
-                  <label className="label">{t("income.description")} </label>
+                  <label className="label">{t('income.description')}</label>
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
                     <textarea
@@ -485,7 +486,7 @@ const Income = () => {
                       onChange={handleChange}
                       className="input-field pl-10"
                       rows="3"
-                      placeholder={t("income.addNote")}
+                      placeholder={t('income.addNote')}
                     />
                   </div>
                 </div>
@@ -500,23 +501,23 @@ const Income = () => {
                     id="isRecurring"
                   />
                   <label htmlFor="isRecurring" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    {t("income.recurring")}
+                    {t('income.recurring')}
                   </label>
                 </div>
 
                 {formData.isRecurring && (
                   <div>
-                    <label className="label">{t("income.recurringPeriod")}</label>
+                    <label className="label">{t('income.recurringPeriod')}</label>
                     <select
                       name="recurringPeriod"
                       value={formData.recurringPeriod}
                       onChange={handleChange}
                       className="input-field"
                     >
-                      <option value="weekly">{t("income.weekly")}</option>
-                      <option value="monthly">{t("income.monthly")}</option>
-                      <option value="quarterly">{t("income.quarterly")}</option>
-                      <option value="yearly">{t("income.yearly")}</option>
+                      <option value="weekly">{t('income.weekly')}</option>
+                      <option value="monthly">{t('income.monthly')}</option>
+                      <option value="quarterly">{t('income.quarterly')}</option>
+                      <option value="yearly">{t('income.yearly')}</option>
                     </select>
                   </div>
                 )}
@@ -527,10 +528,10 @@ const Income = () => {
                     onClick={() => setShowModal(false)}
                     className="flex-1 btn-secondary"
                   >
-                    {t("common.cancel")}
+                    {t('common.cancel')}
                   </button>
                   <button type="submit" className="flex-1 btn-success">
-                    {editingIncome ? t("common.edit") : t("common.add")}{t("settings.income")}
+                    {editingIncome ? t('common.edit') : t('common.add')}{t('settings.income')}
                   </button>
                 </div>
               </form>
@@ -538,6 +539,9 @@ const Income = () => {
           </div>
         )}
       </div>
+
+      {/* ====== Global Confirm Modal ====== */}
+      <ConfirmModal {...confirmProps} />
     </>
   );
 };

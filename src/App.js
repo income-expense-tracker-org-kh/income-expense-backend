@@ -23,6 +23,7 @@ import ProtectedRoute from './components/Common/ProtectedRoute';
 
 // Store
 import { useAuthStore } from './store/authStore';
+import NotFound from './pages/PageNotFound/NotFound';
 
 
 function App() {
@@ -52,7 +53,10 @@ function App() {
 
         {/* Default */}
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
-        <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
+        {/* <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} /> */}
+
+        {/* 404 - catch all unknown routes */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
