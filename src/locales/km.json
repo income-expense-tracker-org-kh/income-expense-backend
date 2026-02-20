@@ -222,7 +222,8 @@
     "insights": "ការវិភាគ",
     "noDataForThisPeriod": "គ្មានទិន្នន័យសម្រាប់រយៈពេលនេះ",
     "noExpenseData": "គ្មានទិន្នន័យចំណាយ",
-    "recurring" : "កើតឡើងជាប្រចាំ"
+    "recurring" : "កើតឡើងជាប្រចាំ",
+    "dataRefreshed" : "ទិន្នន័យត្រូវបានធ្វើបច្ចុប្បន្នភាព"
   },
   "transactions": {
     "title": "ប្រតិបត្តិការទាំងអស់",

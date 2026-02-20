@@ -222,7 +222,8 @@
     "insights": "洞察",
     "noDataForThisPeriod": "此期间没有数据",
     "noExpenseData": "没有支出数据",
-    "recurring" : "定期的"
+    "recurring" : "定期的",
+    "dataRefreshed" : "数据已刷新"
   },
   "transactions": {
     "title": "所有交易",

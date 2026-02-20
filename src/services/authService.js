@@ -5,11 +5,12 @@ export const authService = {
   login: async (credentials) => {
     try {
       const response = await api.post(API_ENDPOINTS.LOGIN, credentials);
-      return response; // response is already response.data due to interceptor
+      return response;
     } catch (error) {
       throw error.response?.data || error;
     }
   },
+
   register: async (userData) => {
     try {
       const response = await api.post(API_ENDPOINTS.REGISTER, userData);
@@ -18,6 +19,7 @@ export const authService = {
       throw error.response?.data || error;
     }
   },
+
   logout: async () => {
     try {
       await api.post(API_ENDPOINTS.LOGOUT);
@@ -26,7 +28,8 @@ export const authService = {
       throw error.response?.data || error;
     }
   },
-  // get user me
+
+  // Get current user
   getAll: async () => {
     return await api.get('/auth/me');
   },
@@ -36,6 +39,15 @@ export const authService = {
     return await api.put('/auth/profile', data);
   },
 
+  // Update Password — ✅ throw the full error so component gets message
+  updatePassword: async (data) => {
+    try {
+      const response = await api.put('/auth/password', data);
+      return response;
+    } catch (error) {
+      // ✅ throw the full error object, NOT error.response?.data
+      // This preserves error.response.data.message for the component to read
+      throw error;
+    }
+  },
 };
-
-
