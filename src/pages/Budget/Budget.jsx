@@ -9,6 +9,8 @@ import { EXPENSE_CATEGORIES, BUDGET_PERIODS } from '../../constants';
 import toast from 'react-hot-toast';
 import { budgetService } from '../../services/budgetService';
 import useTranslation from '../../hooks/useTranslation';
+import { useConfirm } from '../../hooks/useConfirm';
+import ConfirmModal from '../../components/Common/ConfirmModal';
 
 // ─── Skeleton CSS (dark-mode-aware via CSS variables) ─────────────────────────
 const SKELETON_STYLES = `
@@ -112,10 +114,11 @@ const StatusIcon = ({ pct }) => {
 
 const emptyCategory = () => ({ category: '', amount: '', alertThreshold: 80 });
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ====== Main Component ======
 const Budget = () => {
   const { currency, language } = useSettingsStore();
   const { t } = useTranslation(language);
+  const { confirm, confirmProps } = useConfirm(); // ← useConfirm hook
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -130,7 +133,7 @@ const Budget = () => {
   };
   const [formData, setFormData] = useState(defaultForm);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ====== Fetch ======
   const fetchBudgets = async () => {
     try {
       setLoading(true);
@@ -145,7 +148,7 @@ const Budget = () => {
   };
   useEffect(() => { fetchBudgets(); }, []);
 
-  // ── Form helpers ───────────────────────────────────────────────────────────
+  // ====== Form helpers ======
   const resetForm = () => { setFormData(defaultForm); setEditingBudget(null); };
   const handleAdd = () => { resetForm(); setShowModal(true); };
 
@@ -185,11 +188,11 @@ const Budget = () => {
   const addCategoryRow = () => setFormData((p) => ({ ...p, categories: [...p.categories, emptyCategory()] }));
   const removeCategoryRow = (i) => setFormData((p) => ({ ...p, categories: p.categories.filter((_, idx) => idx !== i) }));
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ====== Submit ======
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.totalAmount || !formData.startDate || !formData.endDate) {
-      toast.error('Please fill in all required fields'); return;
+      toast.error(t('notifications.error.fillRequired')); return;
     }
     if (formData.categories.some((c) => !c.category || !c.amount)) {
       toast.error('Each category needs a name and amount'); return;
@@ -216,10 +219,10 @@ const Budget = () => {
     try {
       if (editingBudget) {
         await budgetService.update(editingBudget._id, payload);
-        toast.success('Budget updated successfully');
+        toast.success(t('notifications.success.budgetUpdated'));
       } else {
         await budgetService.create(payload);
-        toast.success('Budget created successfully');
+        toast.success(t('notifications.success.budgetCreated'));
       }
       await fetchBudgets();
       setShowModal(false);
@@ -239,9 +242,17 @@ const Budget = () => {
 
   };
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // ======= Delete =======
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this budget?')) return;
+    // if (!window.confirm('Are you sure you want to delete this budget?')) return;
+    const ok = await confirm({
+      title: t('notifications.confirm.deleteBudget'),
+      message: t('notifications.confirm.deleteBudgetWarning'),
+      confirmText: t('common.delete') || 'Delete',
+      cancelText: t('common.cancel') || 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await budgetService.delete(id);
       toast.success('Budget deleted successfully');
@@ -251,13 +262,13 @@ const Budget = () => {
     }
   };
 
-  // ── Aggregates ─────────────────────────────────────────────────────────────
+  // ======= Aggregates =======
   const totalBudget = budgets.reduce((s, b) => s + (b.totalAmount ?? 0), 0);
   const totalSpent = budgets.reduce((s, b) => s + (b.categories?.reduce((cs, c) => cs + (c.spent ?? 0), 0) ?? 0), 0);
   const totalRemaining = totalBudget - totalSpent;
   const overallPct = calcPct(totalSpent, totalBudget);
 
-  // ── Loading skeleton ───────────────────────────────────────────────────────
+  // ====== Loading skeleton =======
   if (loading) return (
     <>
       <style>{SKELETON_STYLES}</style>
@@ -265,7 +276,7 @@ const Budget = () => {
     </>
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ======= Render =======
   return (
     <>
       <style>{SKELETON_STYLES}</style>
@@ -331,7 +342,7 @@ const Budget = () => {
                             : budget.status === 'active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                           }`}>
-                          {budget.status}
+                          {t(`budget.${budget.status}`)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -559,6 +570,8 @@ const Budget = () => {
           </div>
         )}
       </div>
+      {/* ====== Global Confirm Modal ====== */}
+      <ConfirmModal {...confirmProps} />
     </>
   );
 };

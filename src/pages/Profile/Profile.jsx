@@ -222,7 +222,7 @@ const Profile = () => {
     try {
       if (isEditing) {
          await authService.updateProfile(updateUser);
-        toast.success('Profile updated successfully');
+        toast.success(t('notifications.success.profileUpdated'));
       }
       getDetailUserMe();
       setIsEditing(false);
@@ -233,31 +233,31 @@ const Profile = () => {
 
   const handleChangePassword = () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      toast.error('Please fill in all password fields');
+      toast.error(t('notifications.error.fillAllPasswordFields'));
       return;
     }
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast.error('New passwords do not match');
+      toast.error(t('notifications.error.passwordsNotMatch'));
       return;
     }
     if (passwordData.newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error(t('notifications.error.passwordMinLength'));
       return;
     }
-    toast.success('Password changed successfully');
+    toast.success(t('notifications.success.passwordChanged'));
     setShowPasswordModal(false);
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   const handleDeleteAccount = () => {
-    toast.success('Account deleted');
+     toast.success(t('notifications.success.accountDeleted'));
     logout();
     navigate('/login');
   };
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out successfully');
+    toast.success(t('notifications.success.loggedOut'));
     navigate('/login');
   };
 

@@ -423,7 +423,8 @@
       "languageUpdated": "Language updated",
       "themeChanged": "Theme changed to {mode}",
       "notificationEnabled": "{type} enabled",
-      "notificationDisabled": "{type} disabled"
+      "notificationDisabled": "{type} disabled",
+      "accountDeleted": "Account deleted"
     },
     "error": {
       "fillRequired": "Please fill in all required fields",
@@ -435,7 +436,10 @@
       "invalidFile": "Invalid file format",
       "fileTooLarge": "File size must be less than {size}MB",
       "importFailed": "Failed to import data. Invalid file format.",
-      "exportFailed": "Failed to export report"
+      "exportFailed": "Failed to export report",
+      "fillAllPasswordFields": "Please fill in all password fields",
+      "passwordsNotMatch": "New passwords do not match",
+      "passwordMinLength": "Password must be at least 8 characters"
     },
     "confirm": {
       "deleteIncome": "Are you sure you want to delete this income?",
@@ -443,7 +447,10 @@
       "deleteBudget": "Are you sure you want to delete this budget?",
       "clearAllData": "Are you sure you want to delete all your data? This cannot be undone!",
       "resetSettings": "Reset all settings to default values?",
-      "deleteAccount": "Are you sure you want to delete your account?"
+      "deleteAccount": "Are you sure you want to delete your account?",
+      "deleteIncomeWarning": "This income record will be permanently removed and cannot be recovered.",
+      "deleteExpenseWarning": "This expense record will be permanently removed and cannot be recovered.",
+      "deleteBudgetWarning": "This budget will be permanently removed and cannot be recovered."
     }
   },
   "roles": {
@@ -451,5 +458,11 @@
     "user": "User",
     "manager": "Manager",
     "viewer": "Viewer"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "Oops! The page you're looking for doesn't exist.",
+    "goBack": "Go Back",
+    "goDashboard": "Go to Dashboard"
   }
 }

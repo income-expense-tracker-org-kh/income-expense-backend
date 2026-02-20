@@ -421,7 +421,8 @@
       "languageUpdated": "语言已更新",
       "themeChanged": "主题已更改为 {mode}",
       "notificationEnabled": "{type} 已启用",
-      "notificationDisabled": "{type} 已禁用"
+      "notificationDisabled": "{type} 已禁用",
+      "accountDeleted": "账户已删除"
     },
     "error": {
       "fillRequired": "请填写所有必填字段",
@@ -433,7 +434,10 @@
       "invalidFile": "文件格式无效",
       "fileTooLarge": "文件大小必须小于 {size}MB",
       "importFailed": "导入数据失败。文件格式无效。",
-      "exportFailed": "导出报告失败"
+      "exportFailed": "导出报告失败",
+      "fillAllPasswordFields": "请填写所有密码字段",
+      "passwordsNotMatch": "新密码不匹配",
+      "passwordMinLength": "密码长度必须至少为8个字符"
     },
     "confirm": {
       "deleteIncome": "您确定要删除此收入吗？",
@@ -441,7 +445,10 @@
       "deleteBudget": "您确定要删除此预算吗？",
       "clearAllData": "您确定要删除所有数据吗？此操作无法撤消！",
       "resetSettings": "将所有设置重置为默认值？",
-      "deleteAccount": "您确定要删除您的账户吗？"
+      "deleteAccount": "您确定要删除您的账户吗？",
+      "deleteIncomeWarning": "此收入记录将被永久删除，且无法恢复。",
+      "deleteExpenseWarning": "此支出记录将被永久删除，且无法恢复。",
+      "deleteBudgetWarning": "此预算将被永久删除，且无法恢复。"
     }
   },
   "roles": {
@@ -449,5 +456,11 @@
     "user": "用户",
     "manager": "经理",
     "viewer": "查看者"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "message": "哎呀！您正在查找的页面不存在。",
+    "goBack": "返回",
+    "goDashboard": "前往仪表板"
   }
 }
