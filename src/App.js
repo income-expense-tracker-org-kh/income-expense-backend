@@ -53,7 +53,7 @@ function App() {
 
         {/* Default */}
         <Route path="/" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
-        {/* <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} /> */}
+        <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
 
         {/* 404 - catch all unknown routes */}
         <Route path="*" element={<NotFound />} />
