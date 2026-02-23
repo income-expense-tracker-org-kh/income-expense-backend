@@ -32,7 +32,7 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
+  // const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [loadingMenu, setLoadingMenu] = useState(null);
   
@@ -113,9 +113,9 @@ const MainLayout = () => {
       if (!event.target.closest('.profile-menu') && profileMenuOpen) {
         setProfileMenuOpen(false);
       }
-      if (!event.target.closest('.notification-menu') && notificationMenuOpen) {
-        setNotificationMenuOpen(false);
-      }
+      // if (!event.target.closest('.notification-menu') && notificationMenuOpen) {
+      //   setNotificationMenuOpen(false);
+      // }
       if (!event.target.closest('.language-menu') && languageMenuOpen) {
         setLanguageMenuOpen(false);
       }
@@ -123,7 +123,7 @@ const MainLayout = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [profileMenuOpen, notificationMenuOpen, languageMenuOpen]);
+  }, [profileMenuOpen, languageMenuOpen]);
 
   // Filter menu items based on role permissions
   const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission));
@@ -281,7 +281,7 @@ const MainLayout = () => {
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
 
-              {/* Notifications */}
+              {/* Notifications
               <div className="relative notification-menu">
                 <button
                   onClick={() => setNotificationMenuOpen(!notificationMenuOpen)}
@@ -332,7 +332,7 @@ const MainLayout = () => {
                     </div>
                   </div>
                 )}
-              </div>
+              </div> */}
 
               {/* Profile Menu */}
               <div className="relative profile-menu">
