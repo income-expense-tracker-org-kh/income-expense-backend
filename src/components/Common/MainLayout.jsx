@@ -34,7 +34,7 @@ const MainLayout = () => {
 
   // ✅ State → hook with selector (re-renders when these values change)
   const user     = useAuthStore((s) => s.user);
-  const role     = useAuthStore((s) => s.role);
+  // const role     = useAuthStore((s) => s.role);
   const theme    = useSettingsStore((s) => s.theme);
   const language = useSettingsStore((s) => s.language);
 
@@ -246,9 +246,9 @@ const MainLayout = () => {
                     <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                       {user?.name || 'User'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {/* <p className="text-xs text-gray-500 dark:text-gray-400">
                       {role || 'user'}
-                    </p>
+                    </p> */}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center overflow-hidden border-2 border-white dark:border-gray-700">
                     {user?.avatar ? (
@@ -267,9 +267,9 @@ const MainLayout = () => {
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                       <p className="font-semibold text-gray-800 dark:text-gray-200">{user?.name || 'User'}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email || 'user@example.com'}</p>
-                      <span className="inline-block mt-2 px-2 py-1 text-xs bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded">
+                      {/* <span className="inline-block mt-2 px-2 py-1 text-xs bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 rounded">
                         {role || 'user'}
-                      </span>
+                      </span> */}
                     </div>
                     <Link
                       to="/profile"
