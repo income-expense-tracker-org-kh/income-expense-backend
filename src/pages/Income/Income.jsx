@@ -470,15 +470,7 @@ const Income = () => {
                       name="date"
                       value={formData.date}
                       onChange={handleChange}
-                      className={`
-                        w-full
-                        min-w-0
-                        pl-10
-                        pr-3
-                        h-12
-                        border
-                        rounded-lg
-                      `}
+                      className="input-field pl-10"
                       required
                     />
                   </div>
