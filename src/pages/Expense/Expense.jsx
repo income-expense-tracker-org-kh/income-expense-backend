@@ -519,7 +519,15 @@ const Expense = () => {
                       name="date"
                       value={formData.date}
                       onChange={handleChange}
-                      className="input-field pl-10"
+                      className={`
+                        w-full
+                        min-w-0
+                        pl-10
+                        pr-3
+                        h-12
+                        border
+                        rounded-lg
+                      `}
                       required
                     />
                   </div>

@@ -188,7 +188,17 @@ const IncomeForm = ({ income, onClose }) => {
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className={`input-field pl-10 ${errors.date ? 'border-red-500' : ''}`}
+            className={`
+              w-full
+              min-w-0
+              pl-10
+              pr-3
+              h-12
+              border
+              rounded-lg
+              ${errors.date ? 'border-red-500' : 'border-gray-300'}
+            `}
+            // className={`input-field pl-10 ${errors.date ? 'border-red-500' : ''}`}
             max={new Date().toISOString().split('T')[0]}
           />
         </div>
