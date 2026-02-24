@@ -1,57 +1,80 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useState, useEffect } from 'react';
 
-export const useAuthStore = create(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      role: 'user',
+// ─── Initial State from localStorage ─────────────────────────────────────────
+const getInitialState = () => ({
+  user: JSON.parse(localStorage.getItem('user') || 'null'),
+  token: localStorage.getItem('token') || null,
+  isAuthenticated: !!localStorage.getItem('token'),
+  role: localStorage.getItem('role') || 'user',
+});
 
-      login: (userData, token, role = 'user') => {
-        set({
-          user: userData,
-          token,
-          isAuthenticated: true,
-          role,
-        });
-        localStorage.setItem('token', token); // optional, for axios interceptor
-      },
+// ─── Plain JS Store ───────────────────────────────────────────────────────────
+let state = getInitialState();
+const listeners = new Set();
 
-      logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-          role: 'user',
-        });
-        localStorage.removeItem('token');
-      },
+const setState = (partial) => {
+  state = { ...state, ...partial };
+  listeners.forEach((fn) => fn(state));
+};
 
-      updateUser: (userData) => {
-        set((state) => ({
-          user: { ...state.user, ...userData },
-        }));
-      },
+// ─── authStore (actions — use directly, no hook needed) ───────────────────────
+export const authStore = {
+  getState: () => state,
 
-      setRole: (role) => set({ role }),
+  subscribe: (fn) => {
+    listeners.add(fn);
+    return () => listeners.delete(fn); // returns unsubscribe fn
+  },
 
-      hasPermission: (permission) => {
-        const state = useAuthStore.getState();
-        const role = state.role;
-        if (role === 'admin') return true;
+  login: (userData, token, role = 'user') => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('role', role);
+    setState({ user: userData, token, isAuthenticated: true, role });
+  },
 
-        const rolePermissions = {
-          admin: ['all'],
-          manager: ['read', 'write', 'update'],
-          user: ['read', 'write'],
-          viewer: ['read'],
-        };
-        const permissions = rolePermissions[role] || [];
-        return permissions.includes(permission) || permissions.includes('all');
-      },
-    }),
-    { name: 'auth-storage' }
-  )
-);
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    setState({ user: null, token: null, isAuthenticated: false, role: 'user' });
+  },
+
+  updateUser: (userData) => {
+    const updated = { ...state.user, ...userData };
+    localStorage.setItem('user', JSON.stringify(updated));
+    setState({ user: updated });
+  },
+
+  setRole: (role) => {
+    localStorage.setItem('role', role);
+    setState({ role });
+  },
+
+  hasPermission: (permission) => {
+    const { role } = state;
+    if (role === 'admin') return true;
+    const rolePermissions = {
+      admin: ['all'],
+      manager: ['read', 'write', 'update'],
+      user: ['read', 'write'],
+      viewer: ['read'],
+    };
+    const permissions = rolePermissions[role] || [];
+    return permissions.includes(permission) || permissions.includes('all');
+  },
+};
+
+// ─── useAuthStore hook (for components that need to re-render on state change) ─
+export const useAuthStore = (selector = (s) => s) => {
+  const [value, setValue] = useState(() => selector(authStore.getState()));
+
+  useEffect(() => {
+    const unsubscribe = authStore.subscribe((newState) => {
+      setValue(selector(newState));
+    });
+    return unsubscribe;
+  }, [selector]);
+
+  return value;
+};

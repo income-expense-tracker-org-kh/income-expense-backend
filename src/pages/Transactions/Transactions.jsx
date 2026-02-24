@@ -8,7 +8,7 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants';
 import toast from 'react-hot-toast';
 import useTranslation from '../../hooks/useTranslation';
 
-// ─── Skeleton components ──────────────────────────────────────────────────────
+// ======= Skeleton components =======
 const Skeleton = ({ className = '' }) => (
   <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
 );
@@ -35,11 +35,11 @@ const RowSkeleton = () => (
   </tr>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ======= Main component =======
 const Transactions = () => {
   const { currency, dateFormat, language} = useSettingsStore();
   const { t } = useTranslation(language);
-  // ── Filter state ───────────────────────────────────────────────────────────
+  // ======= Filter state =======
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -48,13 +48,13 @@ const Transactions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // ── Loading & data state ───────────────────────────────────────────────────
+  // ======= Loading & data state =======
   const [loadingExpenses, setLoadingExpenses] = useState(false);
   const [loadingIncome, setLoadingIncome] = useState(false);
   const [allExpenses, setAllExpenses] = useState([]);
   const [allIncome, setAllIncome] = useState([]);
 
-  // ── Fetch functions ────────────────────────────────────────────────────────
+  // ======= Fetch functions =======
 
   const fetchAllExpenses = useCallback(async () => {
     try {
@@ -85,7 +85,7 @@ const Transactions = () => {
     fetchAllIncome();
   }, [fetchAllExpenses, fetchAllIncome]);
 
-  // ── Merge both lists into unified transactions array ───────────────────────
+  // ======= Merge both lists into unified transactions array =======
   const transactions = useMemo(() => [
     ...allIncome.map(t => ({ ...t, type: 'income' })),
     ...allExpenses.map(t => ({ ...t, type: 'expense' })),
@@ -93,7 +93,7 @@ const Transactions = () => {
 
   const isLoading = loadingExpenses || loadingIncome;
 
-  // ── Filter + sort ──────────────────────────────────────────────────────────
+  // ======= Filter + sort =======
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
 
@@ -131,18 +131,18 @@ const Transactions = () => {
     return filtered;
   }, [transactions, searchTerm, filterType, filterCategory, sortBy, dateRange]);
 
-  // ── Pagination ─────────────────────────────────────────────────────────────
+  // ======= Pagination =======
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
   const paginatedTransactions = filteredTransactions.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // ── Summary totals ─────────────────────────────────────────────────────────
+  // ======= Summary totals =======
   const totalIncome  = filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const totalExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ======= Helpers =======
   const getCategoryIcon = (type, categoryId) => {
     const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     const category = categories.find(cat => cat.id === categoryId);
@@ -158,7 +158,7 @@ const Transactions = () => {
     setCurrentPage(1);
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ======= Render =======
   return (
     <div className="space-y-6">
       {/* Header */}

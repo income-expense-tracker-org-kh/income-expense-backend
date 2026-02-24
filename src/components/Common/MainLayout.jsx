@@ -12,77 +12,52 @@ import {
   Menu,
   X,
   User,
-  Bell,
   Globe,
   ChevronDown,
   Loader2,
   Check,
-  AlertCircle,
-  Info,
 } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { useSettingsStore } from '../../store/settingsStore';
+import { useAuthStore, authStore } from '../../store/authStore';           // ✅ import both
+import { useSettingsStore, settingsStore } from '../../store/settingsStore'; // ✅ import both
 import { useTranslation } from '../../hooks/useTranslation';
 import { LANGUAGES } from '../../constants';
 import toast from 'react-hot-toast';
-import logo from "../../assets/logo.png";
+import logo from '../../assets/logo.png';
 
 const MainLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  // const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [loadingMenu, setLoadingMenu] = useState(null);
-  
-  const { user, logout, role, hasPermission } = useAuthStore();
-  const { theme, setTheme, language, setLanguage } = useSettingsStore();
+
+  // ✅ State → hook with selector (re-renders when these values change)
+  const user     = useAuthStore((s) => s.user);
+  const role     = useAuthStore((s) => s.role);
+  const theme    = useSettingsStore((s) => s.theme);
+  const language = useSettingsStore((s) => s.language);
+
+  // ✅ Actions → store directly (no hook needed)
+  const { hasPermission } = authStore;
+  const { setTheme, setLanguage } = settingsStore;
+
   const { t, changeLanguage } = useTranslation(language);
 
-  // Sample notifications
-  const [notifications] = useState([
-    {
-      id: 1,
-      type: 'warning',
-      title: 'Budget Alert',
-      message: 'You have exceeded 90% of your Food budget',
-      time: '5 min ago',
-      read: false,
-    },
-    {
-      id: 2,
-      type: 'info',
-      title: 'Bill Reminder',
-      message: 'Rent payment due in 3 days',
-      time: '1 hour ago',
-      read: false,
-    },
-    {
-      id: 3,
-      type: 'success',
-      title: 'Income Added',
-      message: 'Monthly salary has been recorded',
-      time: '2 hours ago',
-      read: true,
-    },
-  ]);
-
-  const unreadNotifications = notifications.filter(n => !n.read).length;
-
   const menuItems = [
-    { path: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), permission: 'read' },
-    { path: '/income', icon: TrendingUp, label: t('nav.income'), permission: 'write' },
-    { path: '/expense', icon: TrendingDown, label: t('nav.expense'), permission: 'write' },
-    { path: '/budget', icon: Wallet, label: t('nav.budget'), permission: 'write' },
-    { path: '/reports', icon: BarChart3, label: t('nav.reports'), permission: 'read' },
-    { path: '/transactions', icon: Receipt, label: t('nav.transactions'), permission: 'read' },
+    { path: '/dashboard',    icon: LayoutDashboard, label: t('nav.dashboard'),    permission: 'read'  },
+    { path: '/income',       icon: TrendingUp,      label: t('nav.income'),       permission: 'write' },
+    { path: '/expense',      icon: TrendingDown,    label: t('nav.expense'),      permission: 'write' },
+    { path: '/budget',       icon: Wallet,          label: t('nav.budget'),       permission: 'write' },
+    { path: '/reports',      icon: BarChart3,       label: t('nav.reports'),      permission: 'read'  },
+    { path: '/transactions', icon: Receipt,         label: t('nav.transactions'), permission: 'read'  },
   ];
 
+  // ✅ navigate first, then logout after — prevents ProtectedRoute race condition
   const handleLogout = () => {
-    logout();
     toast.success(t('notifications.success.loggedOut'));
-    navigate('/login');
+    navigate('/login', { replace: true });
+    setTimeout(() => authStore.logout(), 100);
   };
 
   const toggleTheme = () => {
@@ -113,35 +88,18 @@ const MainLayout = () => {
       if (!event.target.closest('.profile-menu') && profileMenuOpen) {
         setProfileMenuOpen(false);
       }
-      // if (!event.target.closest('.notification-menu') && notificationMenuOpen) {
-      //   setNotificationMenuOpen(false);
-      // }
       if (!event.target.closest('.language-menu') && languageMenuOpen) {
         setLanguageMenuOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [profileMenuOpen, languageMenuOpen]);
 
   // Filter menu items based on role permissions
-  const filteredMenuItems = menuItems.filter(item => hasPermission(item.permission));
+  const filteredMenuItems = menuItems.filter((item) => hasPermission(item.permission));
 
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'warning':
-        return <AlertCircle className="text-yellow-500" size={20} />;
-      case 'success':
-        return <Check className="text-green-500" size={20} />;
-      case 'info':
-        return <Info className="text-blue-500" size={20} />;
-      default:
-        return <Bell className="text-gray-500" size={20} />;
-    }
-  };
-
-  const currentLanguage = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+  const currentLanguage = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -167,9 +125,8 @@ const MainLayout = () => {
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {filteredMenuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive  = location.pathname === item.path;
               const isLoading = loadingMenu === item.path;
-              
               return (
                 <button
                   key={item.path}
@@ -181,11 +138,7 @@ const MainLayout = () => {
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                   } ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                  {isLoading ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <Icon size={20} />
-                  )}
+                  {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Icon size={20} />}
                   <span className="font-medium">{item.label}</span>
                 </button>
               );
@@ -258,7 +211,9 @@ const MainLayout = () => {
                         key={lang.code}
                         onClick={() => handleLanguageChange(lang.code)}
                         className={`w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                          language === lang.code ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : ''
+                          language === lang.code
+                            ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
+                            : ''
                         }`}
                       >
                         <span className="flex items-center gap-2">
@@ -280,59 +235,6 @@ const MainLayout = () => {
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
-
-              {/* Notifications
-              <div className="relative notification-menu">
-                <button
-                  onClick={() => setNotificationMenuOpen(!notificationMenuOpen)}
-                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors relative rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <Bell size={20} />
-                  {unreadNotifications > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {unreadNotifications}
-                    </span>
-                  )}
-                </button>
-
-                {notificationMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 animate-fade-in">
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-200">Notifications</h3>
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                          No notifications
-                        </div>
-                      ) : (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.id}
-                            className={`p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                              !notification.read ? 'bg-blue-50 dark:bg-blue-900/10' : ''
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              {getNotificationIcon(notification.type)}
-                              <div className="flex-1">
-                                <p className="font-medium text-gray-800 dark:text-gray-200">{notification.title}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{notification.message}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{notification.time}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                    <div className="p-3 border-t border-gray-200 dark:border-gray-700 text-center">
-                      <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
-                        View All Notifications
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div> */}
 
               {/* Profile Menu */}
               <div className="relative profile-menu">

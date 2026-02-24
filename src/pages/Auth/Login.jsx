@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { authStore } from '../../store/authStore'; // ✅ use authStore directly, no hook needed
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '', rememberMe: false });
@@ -31,11 +30,8 @@ const Login = () => {
 
       if (!accessToken) throw new Error('Invalid token received');
 
-      // Save to Zustand store
-      login(user, accessToken);
-
-      // Save token to localStorage (optional, if your axios interceptor uses it)
-      localStorage.setItem('token', accessToken);
+      // ✅ Save user + token to store (also persists to localStorage internally)
+      authStore.login(user, accessToken);
 
       toast.success('Login successful!');
       navigate('/dashboard');
@@ -45,7 +41,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
 
   return (
     <div>
@@ -82,7 +77,11 @@ const Login = () => {
               placeholder="Enter your password"
               required
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2"
+            >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
@@ -95,7 +94,13 @@ const Login = () => {
       </form>
 
       <p className="mt-6 text-center text-sm">
-        Don't have an account? <Link className='text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium' to="/register">Sign up</Link>
+        Don't have an account?{' '}
+        <Link
+          className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+          to="/register"
+        >
+          Sign up
+        </Link>
       </p>
     </div>
   );

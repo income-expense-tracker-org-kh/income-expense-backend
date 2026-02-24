@@ -18,9 +18,9 @@ const AuthLayout = () => {
           <Outlet />
         </div>
 
-        <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
+        {/* <div className="text-center mt-6 text-sm text-gray-600 dark:text-gray-400">
           <p>&copy; 2024 FinTracker. All rights reserved.</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
