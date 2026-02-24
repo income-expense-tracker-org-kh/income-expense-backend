@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { User, Mail, Camera, Calendar, Globe, DollarSign, Bell, Lock, Shield, LogOut, Trash2, Save, Edit2, X, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { authStore, useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useNavigate } from 'react-router-dom';
 import { CURRENCIES, LANGUAGES, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants';
@@ -250,30 +250,37 @@ const Profile = () => {
       return;
     }
 
-    const paramPassword = {
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword,
-    };
+    // setIsSubmitting(true);
 
     try {
-      await authService.updatePassword(paramPassword);
+      const res = await authService.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      console.log("resslsls", res)
 
-      // ✅ SUCCESS — close modal, logout, redirect
-      toast.success(t('notifications.success.passwordChanged'));
-      setShowPasswordModal(false);
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      logout();
-      navigate('/login');
+      // ✅ Check res to confirm success
+      if (res && (res.success === true || res.status === 'success' || res.message)) {
+        // ✅ SUCCESS
+        toast.success(t('notifications.success.passwordChanged'));
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        navigate('/login', { replace: true });
+        setTimeout(() => authStore.logout(), 100);
+      } else {
+        // ✅ API returned 200 but with a failure body
+        toast.error(res?.message || 'Current password is incorrect');
+      }
 
     } catch (error) {
-      // ✅ FAILED — show error toast, stay on current page (no navigate)
+      // ✅ FAILED — HTTP error (401, 400, etc.) — stay on page
       const message =
         error?.response?.data?.message ||
         error?.message ||
         'Current password is incorrect';
-
       toast.error(message);
-      // ❌ REMOVED: navigate("/profile") — was causing reload loop
+    } finally {
+      // setIsSubmitting(false);
     }
   };
 

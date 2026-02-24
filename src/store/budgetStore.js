@@ -1,62 +1,74 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useState, useEffect } from 'react';
 
-export const useBudgetStore = create(
-  persist(
-    (set, get) => ({
-      budgets: [],
+// ─── Initial State from localStorage ─────────────────────────────────────────
+const getInitialState = () => ({
+  budgets: JSON.parse(localStorage.getItem('budget-storage') || '[]'),
+});
 
-      // Add budget
-      addBudget: (budget) => {
-        const newBudget = {
-          ...budget,
-          id: Date.now().toString(),
-          createdAt: new Date().toISOString(),
-        };
-        set((state) => ({
-          budgets: [...state.budgets, newBudget],
-        }));
-      },
+// ─── Plain JS Store ───────────────────────────────────────────────────────────
+let state = getInitialState();
+const listeners = new Set();
 
-      // Update budget
-      updateBudget: (id, updatedData) => {
-        set((state) => ({
-          budgets: state.budgets.map((b) =>
-            b.id === id ? { ...b, ...updatedData, updatedAt: new Date().toISOString() } : b
-          ),
-        }));
-      },
+const setState = (partial) => {
+  state = { ...state, ...partial };
+  localStorage.setItem('budget-storage', JSON.stringify(state.budgets));
+  listeners.forEach((fn) => fn(state));
+};
 
-      // Delete budget
-      deleteBudget: (id) => {
-        set((state) => ({
-          budgets: state.budgets.filter((b) => b.id !== id),
-        }));
-      },
+// ─── budgetStore (actions — use directly, no hook needed) ─────────────────────
+export const budgetStore = {
+  getState: () => state,
 
-      // Get budget by category
-      getBudgetByCategory: (category) => {
-        const { budgets } = get();
-        return budgets.find((b) => b.category === category);
-      },
+  subscribe: (fn) => {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  },
 
-      // Get active budgets
-      getActiveBudgets: () => {
-        const { budgets } = get();
-        const now = new Date();
-        return budgets.filter((b) => {
-          const endDate = new Date(b.endDate);
-          return endDate >= now;
-        });
-      },
+  addBudget: (budget) => {
+    const newBudget = {
+      ...budget,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+    };
+    setState({ budgets: [...state.budgets, newBudget] });
+  },
 
-      // Set budgets
-      setBudgets: (budgets) => {
-        set({ budgets });
-      },
-    }),
-    {
-      name: 'budget-storage',
-    }
-  )
-);
+  updateBudget: (id, updatedData) => {
+    setState({
+      budgets: state.budgets.map((b) =>
+        b.id === id ? { ...b, ...updatedData, updatedAt: new Date().toISOString() } : b
+      ),
+    });
+  },
+
+  deleteBudget: (id) => {
+    setState({ budgets: state.budgets.filter((b) => b.id !== id) });
+  },
+
+  getBudgetByCategory: (category) => {
+    return state.budgets.find((b) => b.category === category);
+  },
+
+  getActiveBudgets: () => {
+    const now = new Date();
+    return state.budgets.filter((b) => new Date(b.endDate) >= now);
+  },
+
+  setBudgets: (budgets) => {
+    setState({ budgets });
+  },
+};
+
+// ─── useBudgetStore hook (for components that need to re-render on state change)
+export const useBudgetStore = (selector = (s) => s) => {
+  const [value, setValue] = useState(() => selector(budgetStore.getState()));
+
+  useEffect(() => {
+    const unsubscribe = budgetStore.subscribe((newState) => {
+      setValue(selector(newState));
+    });
+    return unsubscribe;
+  }, [selector]);
+
+  return value;
+};
