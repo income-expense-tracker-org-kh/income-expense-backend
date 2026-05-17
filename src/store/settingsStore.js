@@ -15,6 +15,7 @@ const getInitialState = () => {
         unusualSpending:saved.notifications?.unusualSpending ?? false,
       },
       dateFormat: saved.dateFormat || 'MM/DD/YYYY',
+      sessionTimeout: saved.sessionTimeout || 'never',
     };
   } catch {
     return {
@@ -28,6 +29,7 @@ const getInitialState = () => {
         unusualSpending: false,
       },
       dateFormat: 'MM/DD/YYYY',
+      sessionTimeout: 'never',
     };
   }
 };
@@ -71,6 +73,8 @@ export const settingsStore = {
 
   setDateFormat: (dateFormat) => setState({ dateFormat }),
 
+  setSessionTimeout: (sessionTimeout) => setState({ sessionTimeout }),
+
   resetSettings: () =>
     setState({
       theme: 'light',
@@ -83,16 +87,28 @@ export const settingsStore = {
         unusualSpending: false,
       },
       dateFormat: 'MM/DD/YYYY',
+      sessionTimeout: 'never',
     }),
 };
 
 // ─── useSettingsStore hook (for components that need to re-render on state change)
 export const useSettingsStore = (selector = (s) => s) => {
-  const [value, setValue] = useState(() => selector(settingsStore.getState()));
+  const getMergedState = () => ({
+    ...settingsStore.getState(),
+    setTheme: settingsStore.setTheme,
+    setCurrency: settingsStore.setCurrency,
+    setLanguage: settingsStore.setLanguage,
+    updateNotifications: settingsStore.updateNotifications,
+    setDateFormat: settingsStore.setDateFormat,
+    resetSettings: settingsStore.resetSettings,
+    setSessionTimeout: settingsStore.setSessionTimeout,
+  });
+
+  const [value, setValue] = useState(() => selector(getMergedState()));
 
   useEffect(() => {
-    const unsubscribe = settingsStore.subscribe((newState) => {
-      setValue(selector(newState));
+    const unsubscribe = settingsStore.subscribe(() => {
+      setValue(selector(getMergedState()));
     });
     return unsubscribe;
   }, [selector]);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService';
+import { authStore } from '../../store/authStore';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await authService.register({
+      const response = await authService.register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -49,16 +50,21 @@ const Register = () => {
         language: 'en',
       });
 
+      const { user, accessToken } = response;
+
+      if (!accessToken) throw new Error('Invalid token received');
+
+      // ✅ Save user + token to store
+      authStore.login(user, accessToken);
+
       toast.success('Registration successful!');
-
-      // If backend auto-login → go dashboard
       navigate('/dashboard');
-
-      // If backend does NOT return token → use this instead:
-      // navigate('/login');
-
     } catch (error) {
-      toast.error(error.message || 'Registration failed');
+      const errorMsg =
+        typeof error === 'string'
+          ? error
+          : error?.message || 'Registration failed. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

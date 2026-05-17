@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 // Layouts
 import MainLayout from './components/Common/MainLayout';
@@ -22,12 +23,46 @@ import Settings from './pages/Settings/Settings';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 
 // Store
-import { useAuthStore } from './store/authStore';
+import { useAuthStore, authStore } from './store/authStore';
+import { useSettingsStore } from './store/settingsStore';
 import NotFound from './pages/PageNotFound/NotFound';
 
 
 function App() {
   const token = useAuthStore((state) => state.token);
+  const sessionTimeout = useSettingsStore((state) => state.sessionTimeout) || 'never';
+
+  // --- Inactivity Auto-Logout Tracker ---
+  useEffect(() => {
+    if (!token || sessionTimeout === 'never') return;
+
+    const timeoutInMs = parseInt(sessionTimeout, 10) * 60 * 1000;
+    let inactivityTimer;
+
+    const resetTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        if (localStorage.getItem('token')) {
+          authStore.logout();
+          toast.error('You have been logged out due to inactivity.');
+          window.location.href = '/login';
+        }
+      }, timeoutInMs);
+    };
+
+    // Track activity events
+    const events = ['mousemove', 'keypress', 'click', 'scroll'];
+    events.forEach(event => window.addEventListener(event, resetTimer));
+
+    // Initialize timer
+    resetTimer();
+
+    // Cleanup
+    return () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      events.forEach(event => window.removeEventListener(event, resetTimer));
+    };
+  }, [token, sessionTimeout]);
 
   return (
     <Router>

@@ -30,15 +30,17 @@ api.interceptors.response.use(
 
     if (status === 401) {
       // ✅ /auth/password returns 401 for wrong password — do NOT redirect
+      // ✅ /auth/login returns 401 for wrong credentials — do NOT redirect
       // All other 401s mean session expired — redirect to login
       const isPasswordChange = url.includes('/auth/password');
+      const isLogin = url.includes('/auth/login');
 
-      if (!isPasswordChange) {
+      if (!isPasswordChange && !isLogin) {
         localStorage.removeItem('token');
         window.location.href = '/login';
       }
-      // isPasswordChange → fall through to Promise.reject
-      // so the catch block in handleChangePassword receives the error
+      // isPasswordChange or isLogin → fall through to Promise.reject
+      // so the catch block in the respective service receives the error
     }
 
     if (status === 429) {

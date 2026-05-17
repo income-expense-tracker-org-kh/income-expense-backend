@@ -201,9 +201,11 @@ const Profile = () => {
       setLoading(true);
       const res = await authService.getAll();
       setProfileData(res?.data);
+      authStore.updateUser(res?.data); // Keep global authStore in sync!
     } catch (error) {
       if (error?.response?.status !== 401) {
-        toast.error('Failed to load profile');
+        const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load profile';
+        toast.error(errorMsg);
       }
     } finally {
       setLoading(false);
@@ -211,9 +213,8 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
     getDetailUserMe();
-  }, [user]);
+  }, []);
 
   const handleSaveProfile = async () => {
     const updateUser = {
@@ -232,7 +233,8 @@ const Profile = () => {
       getDetailUserMe();
       setIsEditing(false);
     } catch (error) {
-      toast.error('Save failed');
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Save failed';
+      toast.error(errorMsg);
     }
   };
 

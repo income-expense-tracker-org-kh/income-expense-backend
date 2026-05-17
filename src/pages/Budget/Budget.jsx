@@ -140,8 +140,9 @@ const Budget = () => {
       const res = await budgetService.getAll();
       // API returns { success, count, data: [...] }
       setBudgets(res?.data?.data ?? res?.data ?? []);
-    } catch {
-      toast.error('Failed to load budgets');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load budgets';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -257,8 +258,9 @@ const Budget = () => {
       await budgetService.delete(id);
       toast.success('Budget deleted successfully');
       await fetchBudgets();
-    } catch {
-      toast.error('Delete failed');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Delete failed';
+      toast.error(errorMsg);
     }
   };
 

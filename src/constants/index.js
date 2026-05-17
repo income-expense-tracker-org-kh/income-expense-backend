@@ -82,6 +82,7 @@ export const CURRENCIES = [
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
   { code: 'CHF', symbol: 'Fr', name: 'Swiss Franc' },
   { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+  { code: 'KHR', symbol: '៛', name: 'Cambodian Riel' },
 ];
 
 // Languages

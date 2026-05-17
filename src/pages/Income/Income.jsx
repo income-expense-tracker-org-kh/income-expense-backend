@@ -149,8 +149,9 @@ const Income = () => {
       setLoading(true);
       const res = await incomeService.getAll();
       setIncomes(res?.data);
-    } catch {
-      toast.error('Failed to load incomes');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load incomes';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -217,8 +218,9 @@ const Income = () => {
       fetchIncomes();
       setShowModal(false);
       resetForm();
-    } catch {
-      toast.error('Save failed');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Save failed';
+      toast.error(errorMsg);
     }
   };
 
@@ -237,8 +239,9 @@ const Income = () => {
       await incomeService.delete(id);
       toast.success(t('notifications.success.incomeDeleted'));
       fetchIncomes();
-    } catch {
-      toast.error('Delete failed');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Delete failed';
+      toast.error(errorMsg);
     }
   };
 

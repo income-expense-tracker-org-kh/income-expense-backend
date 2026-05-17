@@ -36,7 +36,11 @@ const Login = () => {
       toast.success('Login successful!');
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.message || 'Login failed. Please try again.');
+      const errorMsg =
+        typeof error === 'string'
+          ? error
+          : error?.message || 'Login failed. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

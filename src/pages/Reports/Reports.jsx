@@ -47,6 +47,10 @@ const Reports = () => {
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
   });
+  const [tempDates, setTempDates] = useState({
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate,
+  });
   const [reportType, setReportType] = useState('overview');
 
   // ==== Loading state (one boolean per fetch, matching codebase pattern) ====
@@ -73,7 +77,8 @@ const Reports = () => {
       const res = await dashboardService.getFinancialSummary(dateRange);
       setFinancialSummary(res?.data);
     } catch (error) {
-      toast.error('Failed to load financial summary');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load financial summary';
+      toast.error(errorMsg);
     } finally {
       setLoadingFinancialSummary(false);
     }
@@ -85,7 +90,8 @@ const Reports = () => {
       const res = await dashboardService.getInsights(dateRange);
       setInsights(res?.data);
     } catch (error) {
-      toast.error('Failed to load insights');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load insights';
+      toast.error(errorMsg);
     } finally {
       setLoadingInsights(false);
     }
@@ -101,7 +107,8 @@ const Reports = () => {
       const res = await expenseService.getExpenseSummary(dateRange);
       setExpenseSummary(res?.data);
     } catch (error) {
-      toast.error('Failed to load expense summary');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load expense summary';
+      toast.error(errorMsg);
     } finally {
       setLoadingExpenseSummary(false);
     }
@@ -113,7 +120,8 @@ const Reports = () => {
       const res = await expenseService.getExpenseTrends(dateRange);
       setExpenseTrends(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load expense trends');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load expense trends';
+      toast.error(errorMsg);
     } finally {
       setLoadingExpenseTrends(false);
     }
@@ -125,7 +133,8 @@ const Reports = () => {
       const res = await expenseService.getAll(dateRange);
       setAllExpenses(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load expenses');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load expenses';
+      toast.error(errorMsg);
     } finally {
       setLoadingAllExpenses(false);
     }
@@ -137,7 +146,8 @@ const Reports = () => {
       const res = await incomeService.getAll(dateRange);
       setAllIncome(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load incomes');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load incomes';
+      toast.error(errorMsg);
     } finally {
       setLoadingAllIncome(false);
     }
@@ -273,24 +283,30 @@ const Reports = () => {
   // ====== Quick-range helpers =====
   const setThisMonth = () => {
     const today = new Date();
-    setDateRange({
+    const range = {
       startDate: new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0],
       endDate: today.toISOString().split('T')[0],
-    });
+    };
+    setTempDates(range);
+    setDateRange(range);
   };
   const setLastMonth = () => {
     const today = new Date();
-    setDateRange({
+    const range = {
       startDate: new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().split('T')[0],
       endDate: new Date(today.getFullYear(), today.getMonth(), 0).toISOString().split('T')[0],
-    });
+    };
+    setTempDates(range);
+    setDateRange(range);
   };
   const setThisYear = () => {
     const today = new Date();
-    setDateRange({
+    const range = {
       startDate: new Date(today.getFullYear(), 0, 1).toISOString().split('T')[0],
       endDate: today.toISOString().split('T')[0],
-    });
+    };
+    setTempDates(range);
+    setDateRange(range);
   };
 
   // ====== Render =======
@@ -314,15 +330,15 @@ const Reports = () => {
 
       {/* Filters */}
       <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="label">{t("reports.startDate")}</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="date"
-                value={dateRange.startDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                value={tempDates.startDate}
+                onChange={(e) => setTempDates(prev => ({ ...prev, startDate: e.target.value }))}
                 className="input-field pl-10"
               />
             </div>
@@ -333,8 +349,8 @@ const Reports = () => {
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="date"
-                value={dateRange.endDate}
-                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                value={tempDates.endDate}
+                onChange={(e) => setTempDates(prev => ({ ...prev, endDate: e.target.value }))}
                 className="input-field pl-10"
               />
             </div>
@@ -350,6 +366,21 @@ const Reports = () => {
                 <option value="trends">{t("reports.trends")}</option>
               </select>
             </div>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => {
+                setDateRange({
+                  startDate: tempDates.startDate,
+                  endDate: tempDates.endDate,
+                });
+                toast.success(t('reports.filterApplied') || 'Filter applied successfully');
+              }}
+              className="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
+            >
+              <Filter size={16} />
+              {t("reports.applyFilter") || 'Apply Filter'}
+            </button>
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">

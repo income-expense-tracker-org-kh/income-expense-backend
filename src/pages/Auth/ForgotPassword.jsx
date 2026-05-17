@@ -19,7 +19,8 @@ const ForgotPassword = () => {
       setEmailSent(true);
       toast.success('Password reset link sent to your email');
     } catch (error) {
-      toast.error('Failed to send reset link. Please try again.');
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to send reset link. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

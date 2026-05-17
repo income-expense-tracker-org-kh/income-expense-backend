@@ -204,7 +204,8 @@ const Expense = () => {
       const res = await expenseService.getAll();
       setExpenses(res?.data);
     } catch (error) {
-      toast.error('Failed to load expenses');
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load expenses';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -249,7 +250,8 @@ const Expense = () => {
       setShowModal(false);
       resetForm();
     } catch (error) {
-      toast.error('Save failed');
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Save failed';
+      toast.error(errorMsg);
     }
   };
 
@@ -266,8 +268,9 @@ const Expense = () => {
       await expenseService.delete(id);
       toast.success(t('notifications.success.expenseDeleted'));
       fetchExpenses();
-    } catch {
-      toast.error('Delete failed');
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Delete failed';
+      toast.error(errorMsg);
     }
   };
 

@@ -10,6 +10,7 @@ import { expenseService } from '../../services/expenseService';
 import { incomeService } from '../../services/incomeService';
 import { budgetService } from '../../services/budgetService';
 import { formatCurrency } from '../../utils/helpers';
+import { authService } from '../../services/authService';
 
 // ======== Skeleton Primitives =======
 
@@ -151,7 +152,8 @@ const Settings = () => {
     theme, setTheme,
     dateFormat, setDateFormat,
     notifications, updateNotifications,
-    resetSettings
+    resetSettings,
+    sessionTimeout, setSessionTimeout
   } = useSettingsStore();
   const [budgets, setBudgets] = useState([]);
   const { t } = useTranslation(language);
@@ -165,13 +167,22 @@ const Settings = () => {
 
   // ======= Fetch functions =======
 
+  const updateSettingAPI = async (fields) => {
+    try {
+      await authService.updateProfile(fields);
+    } catch (error) {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to sync settings with backend';
+      toast.error(errorMsg);
+    }
+  };
+
   const fetchAllExpenses = useCallback(async () => {
     try {
       const res = await expenseService.getAll();
       setAllExpenses(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load expenses');
-    } finally {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load expenses';
+      toast.error(errorMsg);
     }
   }, []);
 
@@ -182,8 +193,8 @@ const Settings = () => {
       console.log("fetchBudgets", res)
       setBudgets(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load budget');
-    } finally {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load budget';
+      toast.error(errorMsg);
     }
   }, []);
   const totalBudget = budgets && budgets.reduce((s, b) => s + (b.totalAmount ?? 0), 0);
@@ -194,8 +205,8 @@ const Settings = () => {
       const res = await incomeService.getAll();
       setAllIncome(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load incomes');
-    } finally {
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load incomes';
+      toast.error(errorMsg);
     }
   }, []);
 
@@ -370,7 +381,7 @@ const Settings = () => {
                       <label className="label">{t("settings.defaultCurrency")}</label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <select value={currency} onChange={(e) => { setCurrency(e.target.value); toast.success('Currency updated'); }} className="input-field pl-10">
+                        <select value={currency} onChange={(e) => { setCurrency(e.target.value); updateSettingAPI({ currency: e.target.value }); toast.success('Currency updated'); }} className="input-field pl-10">
                           {CURRENCIES.map((curr) => (
                             <option key={curr.code} value={curr.code}>{curr.symbol} {curr.code} - {curr.name}</option>
                           ))}
@@ -382,7 +393,7 @@ const Settings = () => {
                       <label className="label">{t("profile.language")}</label>
                       <div className="relative">
                         <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <select value={language} onChange={(e) => { setLanguage(e.target.value); toast.success('Language updated'); }} className="input-field pl-10">
+                        <select value={language} onChange={(e) => { setLanguage(e.target.value); updateSettingAPI({ language: e.target.value }); toast.success('Language updated'); }} className="input-field pl-10">
                           {LANGUAGES.map((lang) => (
                             <option key={lang.code} value={lang.code}>{lang.name}</option>
                           ))}
@@ -394,7 +405,7 @@ const Settings = () => {
                       <label className="label">{t("settings.dateFormat")}</label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                        <select value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); toast.success('Date format updated'); }} className="input-field pl-10">
+                        <select value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); updateSettingAPI({ dateFormat: e.target.value }); toast.success('Date format updated'); }} className="input-field pl-10">
                           {DATE_FORMATS.map((format) => (
                             <option key={format.value} value={format.value}>{format.label}</option>
                           ))}
@@ -416,14 +427,14 @@ const Settings = () => {
                     <div>
                       <label className="label">{t("settings.themeMode")}</label>
                       <div className="grid grid-cols-2 gap-4 mt-2">
-                        <button onClick={() => { setTheme('light'); toast.success('Theme changed to Light'); }} className={`p-6 border-2 rounded-lg transition-all ${theme === 'light' ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
+                        <button onClick={() => { setTheme('light'); updateSettingAPI({ theme: 'light' }); toast.success('Theme changed to Light'); }} className={`p-6 border-2 rounded-lg transition-all ${theme === 'light' ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
                           <div className="text-center">
                             <div className="text-4xl mb-3">☀️</div>
                             <div className="font-semibold text-gray-800 dark:text-gray-200">{t("settings.lightMode")}</div>
                             <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("settings.lightModeDesc")}</div>
                           </div>
                         </button>
-                        <button onClick={() => { setTheme('dark'); toast.success('Theme changed to Dark'); }} className={`p-6 border-2 rounded-lg transition-all ${theme === 'dark' ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
+                        <button onClick={() => { setTheme('dark'); updateSettingAPI({ theme: 'dark' }); toast.success('Theme changed to Dark'); }} className={`p-6 border-2 rounded-lg transition-all ${theme === 'dark' ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'}`}>
                           <div className="text-center">
                             <div className="text-4xl mb-3">🌙</div>
                             <div className="font-semibold text-gray-800 dark:text-gray-200">{t("settings.darkMode")}</div>
@@ -470,7 +481,10 @@ const Settings = () => {
                           <input
                             type="checkbox"
                             checked={notifications[key]}
-                            onChange={(e) => updateNotifications({ [key]: e.target.checked })}
+                            onChange={(e) => {
+                              updateNotifications({ [key]: e.target.checked });
+                              updateSettingAPI({ notifications: { ...notifications, [key]: e.target.checked } });
+                            }}
                             className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                           />
                         </div>
@@ -565,13 +579,25 @@ const Settings = () => {
                       <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2">{t("settings.sessionSecurity")}</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t("settings.sessionSecurityDesc")}</p>
                       <div className="flex items-center gap-4">
-                        <select className="input-field flex-1">
-                          <option value="never">{t("settings.never")}</option>
-                          <option value="15">15 minutes</option>
-                          <option value="30">30 minutes</option>
-                          <option value="60">1 hour</option>
+                        <select
+                          value={sessionTimeout}
+                          onChange={(e) => {
+                            setSessionTimeout(e.target.value);
+                            toast.success('Session security updated');
+                          }}
+                          className="input-field flex-1"
+                        >
+                          <option value="never">{t("settings.never") || 'Never'}</option>
+                          <option value="15">15 {t("settings.minutes") || 'minutes'}</option>
+                          <option value="30">30 {t("settings.minutes") || 'minutes'}</option>
+                          <option value="60">1 {t("settings.hour") || 'hour'}</option>
                         </select>
-                        <button className="btn-primary">{t("settings.apply")}</button>
+                        <button
+                          onClick={() => toast.success('Session security settings applied successfully')}
+                          className="btn-primary"
+                        >
+                          {t("settings.apply") || 'Apply'}
+                        </button>
                       </div>
                     </div>
                   </div>

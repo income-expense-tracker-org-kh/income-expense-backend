@@ -2,8 +2,8 @@ import api from './api';
 
 export const expenseService = {
   // Get all expensess
-  getAll: async () => {
-    return await api.get('/expenses');
+  getAll: async (params) => {
+    return await api.get('/expenses', { params });
   },
 
   // Create expenses
@@ -21,11 +21,11 @@ export const expenseService = {
     return await api.delete(`/expenses/${id}`);
   },
 
-  getExpenseSummary: async () => {
-    return await api.get('/expenses/summary');
+  getExpenseSummary: async (params) => {
+    return await api.get('/expenses/summary', { params });
   },
 
-  getExpenseTrends: async () => {
-    return await api.get('expenses/trends');
+  getExpenseTrends: async (params) => {
+    return await api.get('expenses/trends', { params });
   }
 };

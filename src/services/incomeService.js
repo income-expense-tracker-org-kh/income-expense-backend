@@ -2,8 +2,8 @@ import api from './api';
 
 export const incomeService = {
   // Get all incomes
-  getAll: async () => {
-    return await api.get('/income');
+  getAll: async (params) => {
+    return await api.get('/income', { params });
   },
 
   // Create income

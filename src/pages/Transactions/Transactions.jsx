@@ -62,7 +62,8 @@ const Transactions = () => {
       const res = await expenseService.getAll();
       setAllExpenses(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load expenses');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load expenses';
+      toast.error(errorMsg);
     } finally {
       setLoadingExpenses(false);
     }
@@ -74,7 +75,8 @@ const Transactions = () => {
       const res = await incomeService.getAll();
       setAllIncome(res?.data ?? []);
     } catch (error) {
-      toast.error('Failed to load incomes');
+      const errorMsg = typeof error === 'string' ? error : error?.message || 'Failed to load incomes';
+      toast.error(errorMsg);
     } finally {
       setLoadingIncome(false);
     }
@@ -124,7 +126,7 @@ const Transactions = () => {
       case 'date-asc':    filtered.sort((a, b) => new Date(a.date) - new Date(b.date)); break;
       case 'amount-desc': filtered.sort((a, b) => b.amount - a.amount); break;
       case 'amount-asc':  filtered.sort((a, b) => a.amount - b.amount); break;
-      case 'category':    filtered.sort((a, b) => a.category.localeCompare(b.category)); break;
+      case 'category':    filtered.sort((a, b) => (a.category || '').localeCompare(b.category || '')); break;
       default: break;
     }
 

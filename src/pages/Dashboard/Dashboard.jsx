@@ -188,7 +188,8 @@ const Dashboard = () => {
       const res = await dashboardService.getAll();
       setDashboardData(res?.data);
     } catch (error) {
-      toast.error('Failed to load dashboard');
+      const errorMsg = typeof error === 'string' ? error : error?.response?.data?.message || error?.message || 'Failed to load dashboard';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
